@@ -1,0 +1,478 @@
+[
+  {
+    "source": "struct Counter {\n    let count: i64;\n}\n\nfn increment(counter: &Counter) {\n    counter.count += 1;\n}\n\nfn doubled(value: i64) -> i64 {\n    return value * 2;\n}\n\nfn main() {\n    const shared = &Counter { count: 0 };\n    const alias = shared;\n    increment(alias);\n    println(shared.count); // 1: reference arguments share the object\n\n    let original = Counter { count: 0 };\n    let copied = original;\n    copied.count += 1;\n    println(original.count); // 0: struct assignments copy values\n\n    let index = 0;\n    while (index < 3) {\n        println(doubled(index)); // 0, 2, 4\n        index += 1;\n    }\n\n    if (shared.count == 1) {\n        println(\"Shared mutation works.\");\n    } else {\n        println(\"Unexpected counter.\");\n    }\n}\n",
+    "executions": [
+      {
+        "output": [
+          "1",
+          "0",
+          "0",
+          "2",
+          "4",
+          "Shared mutation works."
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { let n = 1; n = 2; println(n); }",
+    "executions": [
+      {
+        "output": [
+          "2"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { const n = 1; n = 2; }",
+    "executions": [],
+    "compileError": "1:26: Cannot assign to const binding or field"
+  },
+  {
+    "source": "struct S { let n: i64; }fn main() { const s = S { n: 0 }; s.n = 1; }",
+    "executions": [],
+    "compileError": "1:59: Cannot assign to const binding or field"
+  },
+  {
+    "source": "struct S { let n: i64; }fn main() { const s = &S { n: 0 }; s.n = 1; println(s.n); }",
+    "executions": [
+      {
+        "output": [
+          "1"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "struct S { const n: i64; } fn main() { const s = &S { n: 0 }; s.n = 1; }",
+    "executions": [],
+    "compileError": "1:63: Cannot assign to const binding or field"
+  },
+  {
+    "source": "struct S { let n: i64; } struct Box { let value: S; let shared: &S; }fn main() {\n    let a = Box { value: S { n: 0 }, shared: &S { n: 0 } };\n    let b = a;\n    b.value.n = 4;\n    b.shared.n = 5;\n    println(a.value.n);\n    println(a.shared.n);\n  }",
+    "executions": [
+      {
+        "output": [
+          "0",
+          "5"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "struct S { let n: i64; }\n    fn change(s: S) -> S { let local = s; local.n = 8; return local; }\n    fn main() { const s = S { n: 1 }; const changed = change(s); println(s.n); println(changed.n); }",
+    "executions": [
+      {
+        "output": [
+          "1",
+          "8"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { const n = 1; if (true) { const n = 2; println(n); } println(n); }",
+    "executions": [
+      {
+        "output": [
+          "2",
+          "1"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { if (true) { const n = 2; } println(n); }",
+    "executions": [],
+    "compileError": "1:48: Unknown variable n"
+  },
+  {
+    "source": "fn side() -> bool { println(\"called\"); return true; }\n    fn main() { println(false && side()); println(true || side()); println(true && side()); }",
+    "executions": [
+      {
+        "output": [
+          "false",
+          "true",
+          "called",
+          "true"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { let n: i64 = \"wrong\"; }",
+    "executions": [],
+    "compileError": "1:13: Expected i64, got String"
+  },
+  {
+    "source": "fn f(n: i64) {} fn main() { f(true); }",
+    "executions": [],
+    "compileError": "1:31: Expected i64, got bool"
+  },
+  {
+    "source": "fn f() -> bool { return 1; } fn main() {}",
+    "executions": [],
+    "compileError": "1:18: Expected bool, got i64"
+  },
+  {
+    "source": "fn main() { if (1) {} }",
+    "executions": [],
+    "compileError": "1:13: Expected bool, got i64"
+  },
+  {
+    "source": "fn main() { const n = null; }",
+    "executions": [],
+    "compileError": "1:23: Unknown variable null"
+  },
+  {
+    "source": "fn main() { const n = println(1); }",
+    "executions": [],
+    "compileError": "1:13: Cannot bind void"
+  },
+  {
+    "source": "fn main() { const n = 1; println(&n); }",
+    "executions": [],
+    "compileError": "1:34: & currently requires a struct literal"
+  },
+  {
+    "source": "struct S { let n: i64; } fn main() { const s = S {}; }",
+    "executions": [],
+    "compileError": "1:48: Missing field n"
+  },
+  {
+    "source": "struct S { let n: i64; } fn main() { const s = S { n: 1, n: 2 }; }",
+    "executions": [],
+    "compileError": "1:48: Duplicate field n"
+  },
+  {
+    "source": "struct S { let n: i64; } fn main() { const s = S { other: 1 }; }",
+    "executions": [],
+    "compileError": "1:48: No field other on S"
+  },
+  {
+    "source": "fn main() { println(9007199254740993); println(-9223372036854775808); println(-7 / 2); }",
+    "executions": [
+      {
+        "output": [
+          "9007199254740993",
+          "-9223372036854775808",
+          "-3"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { println(9223372036854775808); }",
+    "executions": [],
+    "compileError": "i64 overflow"
+  },
+  {
+    "source": "fn main() { println(9223372036854775807 + 1); }",
+    "executions": [
+      {
+        "output": [],
+        "maxSteps": 1000000,
+        "runtimeError": "i64 overflow"
+      }
+    ]
+  },
+  {
+    "source": "fn main() { println(1 / 0); }",
+    "executions": [
+      {
+        "output": [],
+        "maxSteps": 1000000,
+        "runtimeError": "Division by zero"
+      }
+    ]
+  },
+  {
+    "source": "struct S { let s: S; } fn main() {}",
+    "executions": [],
+    "compileError": "Recursive value layout involving S; use &S to break the cycle"
+  },
+  {
+    "source": "struct S { let s: &S; } fn main() {}",
+    "executions": []
+  },
+  {
+    "source": "fn main() { while (true) {} }",
+    "executions": [
+      {
+        "output": [],
+        "maxSteps": 20,
+        "runtimeError": "Instruction limit exceeded"
+      }
+    ]
+  },
+  {
+    "source": "fn main() { // comment\n println(\"a\\n\" + \"b\"); println(2 + 3 * 4); println(!(1 > 2)); }",
+    "executions": [
+      {
+        "output": [
+          "a\nb",
+          "14",
+          "true"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "enum LookupError {\n    Unavailable(String),\n    InvalidId,\n}\n\nstruct User {\n    const id: i64;\n    const name: String;\n}\n\nfn findUser(id: i64) -> Result<Option<User>, LookupError> {\n    if (id < 0) {\n        return Err(LookupError::InvalidId);\n    }\n    if (id == 42) {\n        return Ok(Some(User { id: 42, name: \"Alice\" }));\n    }\n    if (id == 500) {\n        return Err(LookupError::Unavailable(\"Database unavailable\"));\n    }\n    return Ok(None);\n}\n\nfn userName(id: i64) -> Result<String, LookupError> {\n    const user = findUser(id)?;\n    return Ok(match (user) {\n        Some(found) => found.name,\n        None => \"Anonymous\",\n    });\n}\n\nfn report(id: i64) {\n    println(match (userName(id)) {\n        Ok(name) => name,\n        Err(error) => match (error) {\n            LookupError::Unavailable(message) => message,\n            LookupError::InvalidId => \"Invalid user ID\",\n        },\n    });\n}\n\nfn main() {\n    report(42);\n    report(7);\n    report(-1);\n    report(500);\n}\n",
+    "executions": [
+      {
+        "output": [
+          "Alice",
+          "Anonymous",
+          "Invalid user ID",
+          "Database unavailable"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn consume(value: Option<i64>) -> i64 {\n    return match (value) { Some(n) => n, None => 0 };\n  } fn main() {\n    let value: Option<i64> = None;\n    println(consume(value)); value = Some(9);\n    println(consume(value)); println(consume(None));\n    const inferred = Some(4); println(consume(inferred));\n  }",
+    "executions": [
+      {
+        "output": [
+          "0",
+          "9",
+          "0",
+          "4"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { const value = None; }",
+    "executions": [],
+    "compileError": "1:27: None requires an expected Option type; add a type annotation"
+  },
+  {
+    "source": "fn main() { const value = Ok(1); }",
+    "executions": [],
+    "compileError": "1:27: Ok requires an expected Result type; add a type annotation"
+  },
+  {
+    "source": "struct Box { let value: Option<Result<Option<i64>,String>>; }\n  fn main() {\n    const box = Box { value: Some(Ok(Some(8))) };\n    const result: Result<Option<i64>,String> = match (box.value) { Some(r) => r, None => Err(\"missing\") };\n    println(match (result) { Ok(value) => match (value) { Some(n) => n, None => 0 }, Err(_) => -1 });\n  }",
+    "executions": [
+      {
+        "output": [
+          "8"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "enum Event { Empty, Pair(i64,String) }\n    fn main() { const n = 10; const e = Event::Pair(3,\"hello\");\n      println(match (e) { Event::Empty => \"empty\", Event::Pair(n,message) => message });\n      println(n);\n      println(match (e) { Event::Empty => 0, Event::Pair(n,_) => n });\n    }",
+    "executions": [
+      {
+        "output": [
+          "hello",
+          "10",
+          "3"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "enum E { A(i64) } fn main() { const e = E::A(1); const x = match (e) { E::A(n) => n }; println(n); }",
+    "executions": [],
+    "compileError": "1:96: Unknown variable n"
+  },
+  {
+    "source": "fn subject() -> Option<i64> { println(\"subject\"); return Some(1); }\n    fn arm() -> i64 { println(\"wrong arm\"); return 0; }\n    fn main() { println(10 + match (subject()) { Some(n) => n, None => arm() }); }",
+    "executions": [
+      {
+        "output": [
+          "subject",
+          "11"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { const value = Some(1); match (value) { Some(n) => println(n), None => println(0) }; }",
+    "executions": [
+      {
+        "output": [
+          "1"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn step(ok: bool) -> Result<i64,String> {\n      if (ok) { return Ok(3); } return Err(\"failed\");\n    }\n    fn next(ok: bool) -> Result<String,String> {\n      if (true) { const n = 100 + step(ok)?; println(n); }\n      println(\"continued\"); return Ok(\"done\");\n    }\n    fn main() {\n      println(match (next(false)) { Ok(s) => s, Err(e) => e });\n      println(match (next(true)) { Ok(s) => s, Err(e) => e });\n    }",
+    "executions": [
+      {
+        "output": [
+          "failed",
+          "103",
+          "continued",
+          "done"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn step(ok: bool) -> Option<i64> { if (ok) { return Some(1); } return None; }\n    fn next(ok: bool) -> Option<String> { const n = step(ok)?; return Some(\"found\"); }\n    fn main() {\n      println(match (next(false)) { Some(s) => s, None => \"missing\" });\n      println(match (next(true)) { Some(s) => s, None => \"missing\" });\n    }",
+    "executions": [
+      {
+        "output": [
+          "missing",
+          "found"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "struct S { let n: i64; } enum E { Value(S), Shared(&S) }\n    fn main() {\n      let original = S { n: 1 }; const e = E::Value(original); original.n = 2;\n      println(match (e) { E::Value(s) => s.n, E::Shared(s) => s.n });\n      const shared = &S { n: 3 }; const refEnum = E::Shared(shared); shared.n = 4;\n      println(match (refEnum) { E::Value(s) => s.n, E::Shared(s) => s.n });\n    }",
+    "executions": [
+      {
+        "output": [
+          "1",
+          "4"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  },
+  {
+    "source": "fn main() { const x = Some(1); println(match (x) { Some(n) => n }); }",
+    "executions": [],
+    "compileError": "1:40: Non-exhaustive match; missing None"
+  },
+  {
+    "source": "fn main() { const x = Some(1); println(match (x) { Some(n) => n, None => 0, None => 1 }); }",
+    "executions": [],
+    "compileError": "1:77: Duplicate match arm None"
+  },
+  {
+    "source": "fn main() { const x = Some(1); println(match (x) { Some(n) => n, None => \"bad\" }); }",
+    "executions": [],
+    "compileError": "1:66: Expected i64, got String"
+  },
+  {
+    "source": "fn main() { const x = Some(1); println(match (x) { Some => 1, None => 0 }); }",
+    "executions": [],
+    "compileError": "1:52: Wrong pattern payload count for Some"
+  },
+  {
+    "source": "fn main() { const x = Some(1); println(match (x) { Some(n) => n, Other::None => 0 }); }",
+    "executions": [],
+    "compileError": "1:66: Pattern Other::None does not belong to Option<i64>"
+  },
+  {
+    "source": "fn main() { const x = Some(1); println(match (x) { Some(n) => n, constructor => 0 }); }",
+    "executions": [],
+    "compileError": "1:66: Unknown variant constructor for Option<i64>"
+  },
+  {
+    "source": "fn main() { const x: Option<i64> = Some(\"bad\"); }",
+    "executions": [],
+    "compileError": "1:41: Expected i64, got String"
+  },
+  {
+    "source": "fn main() { const x: Option<i64> = None(1); }",
+    "executions": [],
+    "compileError": "1:36: Wrong payload count for None"
+  },
+  {
+    "source": "fn main() { const x: Option<i64,String> = None; }",
+    "executions": [],
+    "compileError": "Invalid type Option<i64,String>"
+  },
+  {
+    "source": "fn main() { const x: Result<i64,void> = Ok(1); }",
+    "executions": [],
+    "compileError": "Invalid type void"
+  },
+  {
+    "source": "fn main() { const x = Some(1)?; }",
+    "executions": [],
+    "compileError": "1:23: ? requires Option or Result and a matching function return type"
+  },
+  {
+    "source": "fn f(x: Result<i64,i64>) -> Result<i64,String> { return Ok(x?); } fn main() {}",
+    "executions": [],
+    "compileError": "1:60: Expected String, got i64"
+  },
+  {
+    "source": "fn f(x: Option<i64>) -> Result<i64,String> { return Ok(x?); } fn main() {}",
+    "executions": [],
+    "compileError": "1:56: ? requires Option or Result and a matching function return type"
+  },
+  {
+    "source": "fn f() -> Option<i64> { return Some(1?); } fn main() {}",
+    "executions": [],
+    "compileError": "1:37: ? requires Option or Result and a matching function return type"
+  },
+  {
+    "source": "enum E { A, A } fn main() {}",
+    "executions": [],
+    "compileError": "Duplicate variant A"
+  },
+  {
+    "source": "enum E {} fn main() {}",
+    "executions": [],
+    "compileError": "Enum E requires a variant"
+  },
+  {
+    "source": "enum E { A(i64) } fn main() { const e = E::A(true); }",
+    "executions": [],
+    "compileError": "1:46: Expected i64, got bool"
+  },
+  {
+    "source": "fn main() { const Some = 1; }",
+    "executions": [],
+    "compileError": "1:13: Reserved constructor name Some"
+  },
+  {
+    "source": "enum E { Next(Option<E>) } fn main() {}",
+    "executions": [],
+    "compileError": "Recursive value layout involving E; use &E to break the cycle"
+  },
+  {
+    "source": "enum E { Next(S) } struct S { let e: E; } fn main() {}",
+    "executions": [],
+    "compileError": "Recursive value layout involving S; use &S to break the cycle"
+  },
+  {
+    "source": "enum E { Next(&S), End } struct S { let e: E; } fn main() {}",
+    "executions": []
+  },
+  {
+    "source": "enum E { A } fn main() { println(1); }",
+    "executions": []
+  },
+  {
+    "source": "struct S { let n: i64; }\n    fn mutate(s: &S) -> i64 { s.n += 1; return s.n; }\n    fn main() { const s = &S { n: 0 }; const value = Some(s);\n      println(match (value) { Some(target) => mutate(target), None => -1 }); println(s.n);\n    }",
+    "executions": [
+      {
+        "output": [
+          "1",
+          "1"
+        ],
+        "maxSteps": 1000000
+      }
+    ]
+  }
+]
