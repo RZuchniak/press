@@ -1,0 +1,66 @@
+interface Identifiable {
+    fn identity() -> i64;
+}
+
+interface Incrementable {
+    mut fn increment();
+}
+
+struct Counter implements Identifiable, Incrementable {
+    const id: i64;
+    let count: i64;
+
+    fn identity() -> i64 {
+        return self.id;
+    }
+
+    mut fn increment() {
+        self.count += 1;
+    }
+}
+
+struct Pair<T> {
+    const first: T;
+    const second: T;
+
+    fn firstValue() -> T {
+        return self.first;
+    }
+}
+
+fn sameIdentity<T: Identifiable>(left: T, right: T) -> bool {
+    return left.identity() == right.identity();
+}
+
+fn incrementAndIdentify<T: Identifiable + Incrementable>(item: T) -> i64 {
+    // Parameters are const bindings; this local value can be mutated.
+    let local = item;
+    local.increment();
+    return local.identity();
+}
+
+fn printIdentity(item: &Identifiable) {
+    println(item.identity());
+}
+
+fn main() {
+    let value = Counter { id: 7, count: 0 };
+    value.increment();
+    println(value.count);
+
+    const shared = &Counter { id: 7, count: 0 };
+    shared.increment();
+    printIdentity(shared);
+
+    const first: &Identifiable = shared;
+    println(first.identity());
+    println(sameIdentity(value, Counter { id: 7, count: 99 }));
+    println(sameIdentity<Counter>(value, Counter { id: 8, count: 0 }));
+    println(incrementAndIdentify(shared));
+    println(shared.count);
+
+    const pair = Pair<i64> { first: 10, second: 20 };
+    println(pair.firstValue());
+    const inferred = Pair { first: "hello", second: "world" };
+    println(inferred.firstValue());
+}

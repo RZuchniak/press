@@ -1,0 +1,47 @@
+enum LookupError {
+    Unavailable(String),
+    InvalidId,
+}
+
+struct User {
+    const id: i64;
+    const name: String;
+}
+
+fn findUser(id: i64) -> Result<Option<User>, LookupError> {
+    if (id < 0) {
+        return Err(LookupError::InvalidId);
+    }
+    if (id == 42) {
+        return Ok(Some(User { id: 42, name: "Alice" }));
+    }
+    if (id == 500) {
+        return Err(LookupError::Unavailable("Database unavailable"));
+    }
+    return Ok(None);
+}
+
+fn userName(id: i64) -> Result<String, LookupError> {
+    const user = findUser(id)?;
+    return Ok(match (user) {
+        Some(found) => found.name,
+        None => "Anonymous",
+    });
+}
+
+fn report(id: i64) {
+    println(match (userName(id)) {
+        Ok(name) => name,
+        Err(error) => match (error) {
+            LookupError::Unavailable(message) => message,
+            LookupError::InvalidId => "Invalid user ID",
+        },
+    });
+}
+
+fn main() {
+    report(42);
+    report(7);
+    report(-1);
+    report(500);
+}

@@ -1,0 +1,35 @@
+struct Counter {
+    let count: i64;
+}
+
+fn increment(counter: &Counter) {
+    counter.count += 1;
+}
+
+fn doubled(value: i64) -> i64 {
+    return value * 2;
+}
+
+fn main() {
+    const shared = &Counter { count: 0 };
+    const alias = shared;
+    increment(alias);
+    println(shared.count); // 1: reference arguments share the object
+
+    let original = Counter { count: 0 };
+    let copied = original;
+    copied.count += 1;
+    println(original.count); // 0: struct assignments copy values
+
+    let index = 0;
+    while (index < 3) {
+        println(doubled(index)); // 0, 2, 4
+        index += 1;
+    }
+
+    if (shared.count == 1) {
+        println("Shared mutation works.");
+    } else {
+        println("Unexpected counter.");
+    }
+}
