@@ -1,0 +1,22 @@
+struct Task {
+    const id: i64;
+    const title: String;
+    let done: bool;
+}
+
+fn addTask(store: &Map<i64, Task>, id: i64, title: String) {
+    store.set(id, Task { id: id, title: title, done: false });
+}
+
+fn completeTask(store: &Map<i64, Task>, id: i64) -> Option<Task> {
+    let task = store.get(id)?;
+    task.done = true;
+    store.set(id, task);
+    return Some(task);
+}
+
+fn taskLabel(task: Task) -> String {
+    let prefix = "[ ] ";
+    if (task.done) { prefix = "[x] "; }
+    return prefix + task.title;
+}

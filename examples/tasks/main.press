@@ -1,0 +1,24 @@
+import "store.press";
+
+fn main() {
+    const store = &Map<i64, Task>();
+    let order = List<i64>(1, 2);
+
+    addTask(store, 1, "Build collections");
+    addTask(store, 2, "Add modules");
+    println(match (completeTask(store, 1)) {
+        Some(task) => taskLabel(task),
+        None => "Task not found"
+    });
+
+    let index = 0;
+    while (index < order.len()) {
+        const id = match (order.get(index)) { Some(id) => id, None => -1 };
+        println(match (store.get(id)) {
+            Some(task) => taskLabel(task),
+            None => "Task not found"
+        });
+        index += 1;
+    }
+    println(store.len());
+}

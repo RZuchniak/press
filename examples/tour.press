@@ -1,0 +1,58 @@
+interface Named {
+    fn label() -> String;
+}
+
+struct Counter implements Named {
+    const name: String;
+    let count: i64;
+
+    fn label() -> String {
+        return self.name;
+    }
+
+    mut fn add(amount: i64) -> Result<i64, String> {
+        if (amount < 0) {
+            return Err("Amount must be non-negative");
+        }
+        self.count += amount;
+        return Ok(self.count);
+    }
+}
+
+fn labelOf<T: Named>(value: T) -> String {
+    return value.label();
+}
+
+fn update(counter: &Counter, amount: i64) -> Result<String, String> {
+    counter.add(amount)?;
+    return Ok("Updated");
+}
+
+fn printLabel(value: &Named) {
+    println(value.label());
+}
+
+fn main() {
+    let original = Counter { name: "Tasks", count: 0 };
+    let copied = original;
+    copied.count += 2;
+    println(labelOf(original));
+    println(original.count);
+    println(copied.count);
+
+    const shared = &Counter { name: "Shared tasks", count: 0 };
+    const alias = shared;
+    alias.count += 3;
+    printLabel(shared);
+    println(shared.count);
+
+    println(match (update(shared, 2)) {
+        Ok(message) => message,
+        Err(error) => error,
+    });
+    println(match (update(shared, -1)) {
+        Ok(message) => message,
+        Err(error) => error,
+    });
+    println(shared.count);
+}
