@@ -97,12 +97,12 @@ func run() error {
 	jsonPath := flag.String("json", "", "optional machine-readable report path")
 	cliPath := flag.String("cli", "", "optional native Press executable for launch/exec measurements")
 	workloadName := flag.String("workload", "", "optional workload filter (e.g. nested_value_copies)")
-	phaseName := flag.String("phase", "", "optional phase filter (compile, vm, native_go, launch_exec)")
+	phaseName := flag.String("phase", "", "optional phase filter (compile, vm, load_execute, native_go, launch_exec)")
 	flag.Parse()
 	if flag.NArg() != 0 || *iterations <= 0 || *samples <= 0 || *minimum <= 0 {
 		return fmt.Errorf("iterations, samples and mintime must be positive; positional arguments are not accepted")
 	}
-	if *phaseName != "" && *phaseName != "compile" && *phaseName != "vm" && *phaseName != "native_go" && *phaseName != "launch_exec" {
+	if *phaseName != "" && *phaseName != "compile" && *phaseName != "vm" && *phaseName != "load_execute" && *phaseName != "native_go" && *phaseName != "launch_exec" {
 		return fmt.Errorf("Unknown phase %s", *phaseName)
 	}
 	if *phaseName == "launch_exec" && *cliPath == "" {
@@ -156,6 +156,13 @@ func run() error {
 		}{
 			{"compile", func() error { _, err := language.Compile(workload.Source); return err }},
 			{"vm", operation},
+			{"load_execute", func() error {
+				fresh, err := language.Decode(bytes.NewReader(encoded))
+				if err != nil {
+					return err
+				}
+				return vmOperation(fresh, workload.Expected)()
+			}},
 			{"native_go", func() error {
 				if output := workload.Native(); output != workload.Expected {
 					return fmt.Errorf("Wrong native result")

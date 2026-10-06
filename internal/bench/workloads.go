@@ -31,6 +31,42 @@ func double(value int64) int64 { return value * 2 }
 
 func Workloads() []Workload {
 	return []Workload{
+		{Name: "list_operations", Expected: "499500", Source: `fn main() {
+ const values = &List<i64>(); let i = 0;
+ while (i < 1000) { values.push(i); i += 1; }
+ let sum = 0; i = 0;
+ while (i < values.len()) {
+  sum += match (values.get(i)) { Some(n) => n, None => 0 }; i += 1;
+ } println(sum);
+}`, Native: func() string {
+			values := []int64{}
+			for i := int64(0); i < iterations; i++ {
+				values = append(values, i)
+			}
+			var sum int64
+			for _, v := range values {
+				sum += v
+			}
+			return strconv.FormatInt(sum, 10)
+		}},
+		{Name: "map_operations", Expected: "499500", Source: `fn main() {
+ const values = &Map<i64,i64>(); let i = 0;
+ while (i < 1000) { values.set(i,i); i += 1; }
+ let sum = 0; i = 0;
+ while (i < 1000) {
+  sum += match (values.get(i)) { Some(n) => n, None => 0 }; i += 1;
+ } println(sum);
+}`, Native: func() string {
+			values := map[int64]int64{}
+			for i := int64(0); i < iterations; i++ {
+				values[i] = i
+			}
+			var sum int64
+			for i := int64(0); i < iterations; i++ {
+				sum += values[i]
+			}
+			return strconv.FormatInt(sum, 10)
+		}},
 		{Name: "empty_program", Expected: "0", Source: `fn main() { println(0); }`, Native: func() string { return "0" }},
 		{Name: "arithmetic", Expected: "499500", Source: `fn main() {
    let sum = 0; let i = 0;
