@@ -33,11 +33,7 @@ func run(args []string, stdout io.Writer) error {
 		}
 		return language.Execute(program, options)
 	}
-	source, err := os.ReadFile(args[1])
-	if err != nil {
-		return err
-	}
-	program, err := language.Compile(string(source))
+	program, err := language.CompileFile(args[1])
 	if err != nil {
 		return err
 	}
