@@ -1,149 +1,28 @@
 package language
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"math"
+	"sync"
 )
-
-// Shared targets are ordinary Go pointers, visible to Go's collector.
-type structValue struct {
-	Type   string
-	Fields map[string]any
-}
-type reference struct{ Target structValue }
-type enumValue struct {
-	Type, Variant string
-	Payload       []any
-}
-
-func copyValue(value any) any {
-	switch value := value.(type) {
-	case structValue:
-		fields := make(map[string]any, len(value.Fields))
-		for name, v := range value.Fields {
-			fields[name] = copyValue(v)
-		}
-		return structValue{value.Type, fields}
-	case enumValue:
-		return enumValue{value.Type, value.Variant, copyValues(value.Payload)}
-	default:
-		return value
-	}
-}
-func copyValues(values []any) []any {
-	copied := make([]any, len(values))
-	for i, v := range values {
-		copied[i] = copyValue(v)
-	}
-	return copied
-}
-func object(value any) structValue {
-	switch v := value.(type) {
-	case structValue:
-		return v
-	case *reference:
-		return v.Target
-	}
-	fail("Expected struct object")
-	return structValue{}
-}
-func operandInt(value any) int {
-	switch v := value.(type) {
-	case int:
-		return v
-	case float64:
-		if v >= 0 && v <= math.MaxInt32 && v == math.Trunc(v) {
-			return int(v)
-		}
-	}
-	fail("Invalid instruction operand")
-	return 0
-}
-func operandStrings(value any) []string {
-	switch v := value.(type) {
-	case []string:
-		return v
-	case []any:
-		result := make([]string, len(v))
-		for i, s := range v {
-			result[i] = s.(string)
-		}
-		return result
-	}
-	fail("Invalid string-list operand")
-	return nil
-}
-func arithmetic(op string, a, b any) any {
-	if op == "==" {
-		return a == b
-	}
-	if op == "!=" {
-		return a != b
-	}
-	if s, ok := a.(string); ok && op == "+" {
-		return s + b.(string)
-	}
-	left, right := a.(int64), b.(int64)
-	var result int64
-	switch op {
-	case "+":
-		result = left + right
-		if (right > 0 && result < left) || (right < 0 && result > left) {
-			fail("i64 overflow")
-		}
-	case "-":
-		result = left - right
-		if (right < 0 && result < left) || (right > 0 && result > left) {
-			fail("i64 overflow")
-		}
-	case "*":
-		if (left == math.MinInt64 && right == -1) || (right == math.MinInt64 && left == -1) {
-			fail("i64 overflow")
-		}
-		result = left * right
-		if right != 0 && result/right != left {
-			fail("i64 overflow")
-		}
-	case "/":
-		if right == 0 {
-			fail("Division by zero")
-		}
-		if left == math.MinInt64 && right == -1 {
-			fail("i64 overflow")
-		}
-		result = left / right
-	case "%":
-		if right == 0 {
-			fail("Division by zero")
-		}
-		result = left % right
-	case "<":
-		return left < right
-	case ">":
-		return left > right
-	case "<=":
-		return left <= right
-	case ">=":
-		return left >= right
-	default:
-		fail("Unknown operator " + op)
-	}
-	return result
-}
 
 type Options struct {
 	Print              func(string)
 	MaxSteps, MaxDepth int
 }
 type machine struct {
-	program      *Program
-	options      Options
-	steps, depth int
+	plan          *executionPlan
+	options       Options
+	steps, depth  int
+	frameBase     int
+	locals, stack []value
 }
+type scratchBuffers struct{ locals, stack []value }
 
-// Execute runs trusted compiler output. It is not a sandbox or bytecode verifier.
+var scratchPool = sync.Pool{New: func() any { return &scratchBuffers{locals: make([]value, 0, 16), stack: make([]value, 0, 16)} }}
+
+// Execute runs trusted bytecode, not a sandbox. Metadata must remain immutable
+// after first execution. Concurrent runs of the same Program are safe.
 func Execute(program *Program, options Options) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -154,8 +33,10 @@ func Execute(program *Program, options Options) (err error) {
 			}
 		}
 	}()
-	if program == nil || program.Format != "press-bytecode" || (program.Version != 1 && program.Version != 2 && program.Version != 3) || program.Functions["main"] == nil {
-		fail("Unsupported bytecode format/version")
+	validateHeader(program)
+	program.prepareOnce.Do(func() { program.prepared, program.prepareError = prepare(program) })
+	if program.prepareError != nil {
+		return program.prepareError
 	}
 	if options.Print == nil {
 		options.Print = func(s string) { fmt.Println(s) }
@@ -166,219 +47,266 @@ func Execute(program *Program, options Options) (err error) {
 	if options.MaxDepth <= 0 {
 		options.MaxDepth = 256
 	}
-	vm := machine{program: program, options: options}
-	vm.run("main", nil)
+	buffers := scratchPool.Get().(*scratchBuffers)
+	vm := machine{plan: program.prepared, options: options, locals: buffers.locals[:0], stack: buffers.stack[:0]}
+	defer func() {
+		// Drop guest references even in unused capacity and on error. Avoid retaining
+		// oversized arenas after unusually deep calls or large expressions.
+		clear(vm.locals[:cap(vm.locals)])
+		clear(vm.stack[:cap(vm.stack)])
+		if cap(vm.locals) <= 1024 && cap(vm.stack) <= 1024 {
+			buffers.locals = vm.locals[:0]
+			buffers.stack = vm.stack[:0]
+			scratchPool.Put(buffers)
+		}
+	}()
+	vm.run(vm.plan.functions["main"], nil)
 	return nil
 }
-func Decode(reader io.Reader) (*Program, error) {
-	decoder := json.NewDecoder(reader)
-	var program Program
-	if err := decoder.Decode(&program); err != nil {
-		return nil, fmt.Errorf("Invalid bytecode JSON: %w", err)
+func (vm *machine) pop() value {
+	n := len(vm.stack)
+	if n <= vm.frameBase {
+		fail("Bytecode stack underflow")
 	}
-	var trailing any
-	if err := decoder.Decode(&trailing); err != io.EOF {
-		return nil, fmt.Errorf("Unexpected data after bytecode artifact")
-	}
-	return &program, nil
+	v := vm.stack[n-1]
+	vm.stack[n-1] = value{}
+	vm.stack = vm.stack[:n-1]
+	return v
 }
-func (vm *machine) run(name string, args []any) any {
+func (vm *machine) top() value {
+	if len(vm.stack) <= vm.frameBase {
+		fail("Bytecode stack underflow")
+	}
+	return vm.stack[len(vm.stack)-1]
+}
+func (vm *machine) take(count int) []value {
+	if count < 0 || count > len(vm.stack)-vm.frameBase {
+		fail("Bytecode stack underflow")
+	}
+	start := len(vm.stack) - count
+	values := vm.stack[start:]
+	vm.stack = vm.stack[:start]
+	return values
+}
+func pathValue(v value, path []string) value {
+	for _, field := range path {
+		o := object(v)
+		index, ok := o.layout.fields[field]
+		if !ok {
+			fail("Missing field " + field)
+		}
+		v = o.fields[index]
+	}
+	return v
+}
+func (vm *machine) run(fn *preparedFunction, args []value) value {
 	vm.depth++
 	defer func() { vm.depth-- }()
 	if vm.depth > vm.options.MaxDepth {
 		fail("Call depth limit exceeded")
 	}
-	fn := vm.program.Functions[name]
 	if fn == nil {
-		fail("Missing function " + name)
+		fail("Missing function")
 	}
-	if len(args) != len(fn.Params) {
-		fail("Wrong bytecode argument count for " + name)
+	if len(args) != fn.params {
+		fail("Wrong bytecode argument count for " + fn.name)
 	}
-	scopes := []map[string]any{{}}
-	for i, name := range fn.Params {
-		if i == 0 && fn.Receiver != "" {
-			scopes[0][name] = object(args[i])
-		} else {
-			scopes[0][name] = copyValue(args[i])
+	base, stackBase := len(vm.locals), len(vm.stack)
+	previousFrame := vm.frameBase
+	vm.frameBase = stackBase
+	// Reuse a local arena across calls and resolve lexical scopes in the plan.
+	for i := 0; i < fn.locals; i++ {
+		vm.locals = append(vm.locals, value{})
+	}
+	for i, arg := range args {
+		if i == 0 && fn.receiver {
+			object(arg)
+			arg.kind = structValue
 		}
+		vm.locals[base+i] = arg
 	}
-	stack := []any{}
-	pop := func() any {
-		if len(stack) == 0 {
-			fail("Bytecode stack underflow")
+	defer func() {
+		vm.frameBase = previousFrame
+		clear(vm.locals[base:])
+		vm.locals = vm.locals[:base]
+		if len(vm.stack) > stackBase {
+			clear(vm.stack[stackBase:])
+			vm.stack = vm.stack[:stackBase]
 		}
-		value := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
-		return value
-	}
-	top := func() any {
-		if len(stack) == 0 {
-			fail("Bytecode stack underflow")
-		}
-		return stack[len(stack)-1]
-	}
-	popMany := func(count int) []any {
-		if count < 0 || count > len(stack) {
-			fail("Bytecode stack underflow")
-		}
-		values := append([]any{}, stack[len(stack)-count:]...)
-		stack = stack[:len(stack)-count]
-		return values
-	}
-	binding := func(name string) map[string]any {
-		for i := len(scopes) - 1; i >= 0; i-- {
-			if _, ok := scopes[i][name]; ok {
-				return scopes[i]
-			}
-		}
-		fail("Missing binding " + name)
-		return nil
-	}
+	}()
 	pc := 0
-	for pc < len(fn.Code) {
-		vm.steps++
+	for pc < len(fn.code) {
+		instruction := &fn.code[pc]
+		if instruction.span > 1 && instruction.span > vm.options.MaxSteps-vm.steps {
+			instruction = instruction.fallback
+		}
+		pc += instruction.span
+		vm.steps += instruction.span
 		if vm.steps > vm.options.MaxSteps {
 			fail("Instruction limit exceeded")
 		}
-		instruction := fn.Code[pc]
-		pc++
-		op := instruction[0].(string)
-		switch op {
-		case "PUSH":
-			if instruction[1] == "i64" {
-				stack = append(stack, parseInteger(instruction[2].(string)))
-			} else {
-				stack = append(stack, instruction[2])
+		switch instruction.op {
+		case codeCollection:
+			values := vm.take(instruction.count)
+			result := newCollection(instruction.collection, values)
+			clear(values)
+			vm.stack = append(vm.stack, result)
+		case codeCallCollection:
+			values := vm.take(instruction.count + 1)
+			result := collectionCall(instruction.collectionOp, values)
+			clear(values)
+			if instruction.hasResult {
+				vm.stack = append(vm.stack, result)
 			}
-		case "LOAD":
-			name := instruction[1].(string)
-			stack = append(stack, copyValue(binding(name)[name]))
-		case "LOAD_PATH":
-			path := operandStrings(instruction[1])
-			value := binding(path[0])[path[0]]
-			for _, key := range path[1:] {
-				value = object(value).Fields[key]
+		case codePush:
+			vm.stack = append(vm.stack, instruction.constant)
+		case codeLoad:
+			vm.stack = append(vm.stack, copyValue(vm.locals[base+instruction.slot]))
+		case codeReadPath:
+			vm.stack = append(vm.stack, copyValue(pathValue(vm.locals[base+instruction.slot], instruction.path)))
+		case codeLoadPath:
+			vm.stack = append(vm.stack, pathValue(vm.locals[base+instruction.slot], instruction.path))
+		case codeDeclare, codeStoreLocal:
+			vm.locals[base+instruction.slot] = vm.pop()
+		case codeStoreField:
+			v := vm.pop()
+			parent := pathValue(vm.locals[base+instruction.slot], instruction.path[:len(instruction.path)-1])
+			o := object(parent)
+			index, ok := o.layout.fields[instruction.path[len(instruction.path)-1]]
+			if !ok {
+				fail("Missing field")
 			}
-			stack = append(stack, value)
-		case "DECLARE":
-			scopes[len(scopes)-1][instruction[1].(string)] = copyValue(pop())
-		case "STORE":
-			path := operandStrings(instruction[1])
-			value := copyValue(pop())
-			scope := binding(path[0])
-			if len(path) == 1 {
-				scope[path[0]] = value
-			} else {
-				parent := scope[path[0]]
-				for _, key := range path[1 : len(path)-1] {
-					parent = object(parent).Fields[key]
+			o.fields[index] = v
+		case codeStruct:
+			fields := make([]value, len(instruction.layout.fields))
+			values := vm.take(len(instruction.indices))
+			for i, index := range instruction.indices {
+				fields[index] = values[i]
+			}
+			clear(values)
+			vm.stack = append(vm.stack, value{kind: structValue, object: &objectValue{layout: instruction.layout, fields: fields}})
+		case codeRef:
+			v := vm.pop()
+			object(v)
+			v.kind = referenceValue
+			vm.stack = append(vm.stack, v)
+		case codeEnum:
+			values := vm.take(instruction.count)
+			fields := make([]value, len(values))
+			copy(fields, values)
+			clear(values)
+			vm.stack = append(vm.stack, value{kind: enumValue, object: &objectValue{variant: instruction.text, fields: fields}})
+		case codeMatch:
+			if vm.top().object.variant != instruction.text {
+				pc = instruction.jump
+			}
+		case codePayload:
+			vm.stack = append(vm.stack, copyValue(vm.top().object.fields[instruction.count]))
+		case codeTry:
+			v := vm.pop()
+			if v.object.variant != instruction.text {
+				return v
+			}
+			vm.stack = append(vm.stack, v.object.fields[0])
+		case codeTrap:
+			fail(instruction.text)
+		case codeField:
+			parent := vm.pop()
+			v := pathValue(parent, instruction.path)
+			if parent.kind == referenceValue {
+				v = copyValue(v)
+			}
+			vm.stack = append(vm.stack, v)
+		case codeUnary:
+			v := vm.pop()
+			if instruction.text == "!" {
+				if v.kind != boolValue {
+					fail("Expected bool")
 				}
-				object(parent).Fields[path[len(path)-1]] = value
-			}
-		case "STRUCT":
-			names := operandStrings(instruction[2])
-			values := popMany(len(names))
-			fields := make(map[string]any, len(names))
-			for i, name := range names {
-				fields[name] = copyValue(values[i])
-			}
-			stack = append(stack, structValue{instruction[1].(string), fields})
-		case "REF":
-			stack = append(stack, &reference{pop().(structValue)})
-		case "ENUM":
-			values := popMany(operandInt(instruction[3]))
-			stack = append(stack, enumValue{instruction[1].(string), instruction[2].(string), copyValues(values)})
-		case "MATCH_VARIANT":
-			if top().(enumValue).Variant != instruction[1].(string) {
-				pc = operandInt(instruction[2])
-			}
-		case "PAYLOAD":
-			stack = append(stack, copyValue(top().(enumValue).Payload[operandInt(instruction[1])]))
-		case "TRY":
-			value := pop().(enumValue)
-			if value.Variant != instruction[2].(string) {
-				value.Type = instruction[1].(string)
-				return copyValue(value)
-			}
-			stack = append(stack, copyValue(value.Payload[0]))
-		case "TRAP":
-			fail(instruction[1].(string))
-		case "FIELD":
-			stack = append(stack, copyValue(object(pop()).Fields[instruction[1].(string)]))
-		case "UNARY":
-			value := pop()
-			if instruction[1] == "!" {
-				stack = append(stack, !value.(bool))
+				v = boolean(v.number == 0)
 			} else {
-				n := value.(int64)
-				if n == math.MinInt64 {
+				if v.kind != intValue {
+					fail("Expected i64")
+				}
+				if v.number == math.MinInt64 {
 					fail("i64 overflow")
 				}
-				stack = append(stack, -n)
+				v.number = -v.number
 			}
-		case "BINARY":
-			right, left := pop(), pop()
-			stack = append(stack, arithmetic(instruction[1].(string), left, right))
-		case "AND":
-			if !top().(bool) {
-				pc = operandInt(instruction[1])
+			vm.stack = append(vm.stack, v)
+		case codeBinary:
+			right, left := vm.pop(), vm.pop()
+			vm.stack = append(vm.stack, arithmetic(instruction.arithmetic, left, right))
+		case codeBinaryLocal, codeBinaryPush, codeCompareJump:
+			left := vm.locals[base+instruction.slot]
+			right := instruction.constant
+			if !instruction.rightConstant {
+				right = vm.locals[base+instruction.rightSlot]
+			}
+			result := arithmetic(instruction.arithmetic, left, right)
+			switch instruction.op {
+			case codeBinaryLocal:
+				vm.locals[base+instruction.count] = result
+			case codeBinaryPush:
+				vm.stack = append(vm.stack, result)
+			case codeCompareJump:
+				if result.number == 0 {
+					pc = instruction.jump
+				}
+			}
+		case codeAnd:
+			if vm.top().number == 0 {
+				pc = instruction.jump
 			} else {
-				pop()
+				vm.pop()
 			}
-		case "OR":
-			if top().(bool) {
-				pc = operandInt(instruction[1])
+		case codeOr:
+			if vm.top().number != 0 {
+				pc = instruction.jump
 			} else {
-				pop()
+				vm.pop()
 			}
-		case "PRINT":
-			vm.options.Print(fmt.Sprint(pop()))
-		case "CALL":
-			name := instruction[1].(string)
-			result := vm.run(name, popMany(operandInt(instruction[2])))
-			if vm.program.Functions[name].Result != "void" {
-				stack = append(stack, result)
+		case codePrint:
+			vm.options.Print(formatValue(vm.pop()))
+		case codeCall:
+			values := vm.take(instruction.count)
+			result := vm.run(instruction.target, values)
+			if instruction.target.result {
+				vm.stack = append(vm.stack, result)
 			}
-		case "CALL_METHOD":
-			arguments := popMany(operandInt(instruction[2]))
-			receiver := pop()
-			target := object(receiver)
-			key := vm.program.Methods[target.Type][instruction[1].(string)]
-			if key == "" {
+		case codeCallMethod:
+			values := vm.take(instruction.count + 1)
+			o := object(values[0])
+			target := o.layout.methods[instruction.text]
+			if target == nil {
 				fail("Missing method dispatch target")
 			}
-			result := vm.run(key, append([]any{receiver}, arguments...))
-			if vm.program.Functions[key].Result != "void" {
-				stack = append(stack, result)
+			result := vm.run(target, values)
+			if target.result {
+				vm.stack = append(vm.stack, result)
 			}
-		case "RETURN":
-			if instruction[1].(bool) {
-				return copyValue(pop())
+		case codeReturn:
+			if instruction.count != 0 {
+				return vm.pop()
 			}
-			return nil
-		case "POP":
-			pop()
-		case "ENTER":
-			scopes = append(scopes, map[string]any{})
-		case "EXIT":
-			if len(scopes) <= 1 {
-				fail("Bytecode scope underflow")
+			return value{}
+		case codePop:
+			vm.pop()
+		case codeEnter: // no runtime scope maps
+		case codeExit:
+			for _, slot := range instruction.indices {
+				vm.locals[base+slot] = value{}
 			}
-			scopes = scopes[:len(scopes)-1]
-		case "JUMP":
-			pc = operandInt(instruction[1])
-		case "JUMP_FALSE":
-			if !pop().(bool) {
-				pc = operandInt(instruction[1])
+		case codeJump:
+			pc = instruction.jump
+		case codeJumpFalse:
+			if vm.pop().number == 0 {
+				pc = instruction.jump
 			}
 		default:
-			fail("Unknown opcode " + op)
-		}
-		if pc < 0 || pc > len(fn.Code) {
-			fail("Invalid bytecode jump")
+			fail("Unknown opcode")
 		}
 	}
-	fail("Function " + name + " fell through")
-	return nil
+	fail("Function " + fn.name + " fell through")
+	return value{}
 }

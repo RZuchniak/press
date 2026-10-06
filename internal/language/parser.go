@@ -13,6 +13,9 @@ func (e languageError) Error() string { return e.message }
 func fail(message string, token ...Token) {
 	if len(token) > 0 && token[0].Line > 0 {
 		message = fmt.Sprintf("%d:%d: %s", token[0].Line, token[0].Column, message)
+		if token[0].File != "" {
+			message = token[0].File + ":" + message
+		}
 	}
 	panic(languageError{message})
 }
@@ -29,6 +32,7 @@ func recoverLanguage(err *error) {
 type Token struct {
 	Text         string
 	Line, Column int
+	File         string
 }
 
 var tokenPattern = regexp.MustCompile(`^(\s+|//[^\n]*|"(?:[^"\\\n]|\\["\\nrt])*"|\d+|[A-Za-z_][A-Za-z_0-9]*|->|=>|::|\+=|-=|==|!=|<=|>=|&&|\|\||[{}();,:.?&+*/%<>=!\-])`)
@@ -44,7 +48,7 @@ func lex(source string) []Token {
 			fail(fmt.Sprintf("Unexpected character %q", source[:1]), Token{Line: line, Column: column})
 		}
 		if strings.TrimSpace(text) != "" && !strings.HasPrefix(text, "//") {
-			tokens = append(tokens, Token{text, line, column})
+			tokens = append(tokens, Token{Text: text, Line: line, Column: column})
 		}
 		for _, char := range text {
 			if char == '\n' {
@@ -56,7 +60,7 @@ func lex(source string) []Token {
 		}
 		source = source[len(text):]
 	}
-	return append(tokens, Token{"<eof>", line, column})
+	return append(tokens, Token{Text: "<eof>", Line: line, Column: column})
 }
 
 type Node struct {
@@ -119,6 +123,7 @@ type FunctionDecl struct {
 	Mutable      bool
 }
 type AST struct {
+	Imports    []string
 	Structs    []StructDecl
 	Enums      []EnumDecl
 	Functions  []FunctionDecl
@@ -154,7 +159,7 @@ func (p *parser) expect(text string) Token {
 }
 func (p *parser) name() string {
 	t := p.take()
-	if !identifier.MatchString(t.Text) || strings.Contains("|let|const|fn|struct|enum|match|return|while|if|else|true|false|mut|interface|implements|", "|"+t.Text+"|") {
+	if !identifier.MatchString(t.Text) || strings.Contains("|let|const|fn|struct|enum|match|return|while|if|else|true|false|mut|interface|implements|import|", "|"+t.Text+"|") {
 		fail("Expected identifier", t)
 	}
 	return t.Text
@@ -185,6 +190,14 @@ func (p *parser) program() AST {
 	for !p.is("<eof>") {
 		t := p.take()
 		switch t.Text {
+		case "import":
+			path := p.take()
+			var name string
+			if err := json.Unmarshal([]byte(path.Text), &name); err != nil || name == "" {
+				fail("Import requires a nonempty quoted file path", path)
+			}
+			p.expect(";")
+			ast.Imports = append(ast.Imports, name)
 		case "struct":
 			s := StructDecl{Name: p.name()}
 			s.Generics = p.generics()
@@ -411,7 +424,7 @@ func (p *parser) primary() *Node {
 	var value *Node
 	if t.Text == "&" {
 		value = p.primary()
-		if value.Kind != "construct" {
+		if value.Kind != "construct" && !(value.Kind == "call" && (value.Name == "List" || value.Name == "Map")) {
 			fail("& currently requires a struct literal", t)
 		}
 		return &Node{Kind: "reference", Value: value, Token: t}

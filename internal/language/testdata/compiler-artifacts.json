@@ -1,0 +1,5701 @@
+[
+  {
+    "source": "struct Counter {\n    let count: i64;\n}\n\nfn increment(counter: &Counter) {\n    counter.count += 1;\n}\n\nfn doubled(value: i64) -> i64 {\n    return value * 2;\n}\n\nfn main() {\n    const shared = &Counter { count: 0 };\n    const alias = shared;\n    increment(alias);\n    println(shared.count); // 1: reference arguments share the object\n\n    let original = Counter { count: 0 };\n    let copied = original;\n    copied.count += 1;\n    println(original.count); // 0: struct assignments copy values\n\n    let index = 0;\n    while (index < 3) {\n        println(doubled(index)); // 0, 2, 4\n        index += 1;\n    }\n\n    if (shared.count == 1) {\n        println(\"Shared mutation works.\");\n    } else {\n        println(\"Unexpected counter.\");\n    }\n}\n",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "Counter": {
+          "count": {
+            "name": "count",
+            "type": "i64",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "doubled": {
+          "params": [
+            "value"
+          ],
+          "paramTypes": [
+            "i64"
+          ],
+          "result": "i64",
+          "code": [
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "BINARY",
+              "*"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "increment": {
+          "params": [
+            "counter"
+          ],
+          "paramTypes": [
+            "&Counter"
+          ],
+          "result": "void",
+          "code": [
+            [
+              "LOAD",
+              "counter"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "counter",
+                "count"
+              ]
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "count"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "shared"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "DECLARE",
+              "alias"
+            ],
+            [
+              "LOAD",
+              "alias"
+            ],
+            [
+              "CALL",
+              "increment",
+              1
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "count"
+              ]
+            ],
+            [
+              "DECLARE",
+              "original"
+            ],
+            [
+              "LOAD",
+              "original"
+            ],
+            [
+              "DECLARE",
+              "copied"
+            ],
+            [
+              "LOAD",
+              "copied"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "copied",
+                "count"
+              ]
+            ],
+            [
+              "LOAD",
+              "original"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "DECLARE",
+              "index"
+            ],
+            [
+              "LOAD",
+              "index"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "3"
+            ],
+            [
+              "BINARY",
+              "<"
+            ],
+            [
+              "JUMP_FALSE",
+              40
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "LOAD",
+              "index"
+            ],
+            [
+              "CALL",
+              "doubled",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "index"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "index"
+              ]
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              26
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "=="
+            ],
+            [
+              "JUMP_FALSE",
+              50
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Shared mutation works."
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              54
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Unexpected counter."
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "Counter": {}
+      }
+    }
+  },
+  {
+    "source": "fn main() { let n = 1; n = 2; println(n); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "STORE",
+              [
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "struct S { let n: i64; }fn main() { const s = &S { n: 0 }; s.n = 1; println(s.n); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "S": {
+          "n": {
+            "name": "n",
+            "type": "i64",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "STORE",
+              [
+                "s",
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "S": {}
+      }
+    }
+  },
+  {
+    "source": "struct S { let n: i64; } struct Box { let value: S; let shared: &S; }fn main() {\n    let a = Box { value: S { n: 0 }, shared: &S { n: 0 } };\n    let b = a;\n    b.value.n = 4;\n    b.shared.n = 5;\n    println(a.value.n);\n    println(a.shared.n);\n  }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "Box": {
+          "shared": {
+            "name": "shared",
+            "type": "&S",
+            "mutable": true
+          },
+          "value": {
+            "name": "value",
+            "type": "S",
+            "mutable": true
+          }
+        },
+        "S": {
+          "n": {
+            "name": "n",
+            "type": "i64",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "STRUCT",
+              "Box",
+              [
+                "value",
+                "shared"
+              ]
+            ],
+            [
+              "DECLARE",
+              "a"
+            ],
+            [
+              "LOAD",
+              "a"
+            ],
+            [
+              "DECLARE",
+              "b"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "4"
+            ],
+            [
+              "STORE",
+              [
+                "b",
+                "value",
+                "n"
+              ]
+            ],
+            [
+              "PUSH",
+              "i64",
+              "5"
+            ],
+            [
+              "STORE",
+              [
+                "b",
+                "shared",
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "a"
+            ],
+            [
+              "FIELD",
+              "value"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "a"
+            ],
+            [
+              "FIELD",
+              "shared"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "Box": {},
+        "S": {}
+      }
+    }
+  },
+  {
+    "source": "struct S { let n: i64; }\n    fn change(s: S) -> S { let local = s; local.n = 8; return local; }\n    fn main() { const s = S { n: 1 }; const changed = change(s); println(s.n); println(changed.n); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "S": {
+          "n": {
+            "name": "n",
+            "type": "i64",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "change": {
+          "params": [
+            "s"
+          ],
+          "paramTypes": [
+            "S"
+          ],
+          "result": "S",
+          "code": [
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "DECLARE",
+              "local"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "8"
+            ],
+            [
+              "STORE",
+              [
+                "local",
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "local"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "CALL",
+              "change",
+              1
+            ],
+            [
+              "DECLARE",
+              "changed"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "changed"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "S": {}
+      }
+    }
+  },
+  {
+    "source": "fn main() { const n = 1; if (true) { const n = 2; println(n); } println(n); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "JUMP_FALSE",
+              11
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              13
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn side() -> bool { println(\"called\"); return true; }\n    fn main() { println(false && side()); println(true || side()); println(true && side()); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "bool",
+              false
+            ],
+            [
+              "AND",
+              3
+            ],
+            [
+              "CALL",
+              "side",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "OR",
+              7
+            ],
+            [
+              "CALL",
+              "side",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "AND",
+              11
+            ],
+            [
+              "CALL",
+              "side",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "side": {
+          "params": [],
+          "result": "bool",
+          "code": [
+            [
+              "PUSH",
+              "String",
+              "called"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn main() { println(9007199254740993); println(-9223372036854775808); println(-7 / 2); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "9007199254740993"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-9223372036854775808"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-7"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "BINARY",
+              "/"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn main() { println(9223372036854775807 + 1); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "9223372036854775807"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn main() { println(1 / 0); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "BINARY",
+              "/"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "struct S { let s: &S; } fn main() {}",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "S": {
+          "s": {
+            "name": "s",
+            "type": "&S",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "S": {}
+      }
+    }
+  },
+  {
+    "source": "fn main() { while (true) {} }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "JUMP_FALSE",
+              5
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              0
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn main() { // comment\n println(\"a\\n\" + \"b\"); println(2 + 3 * 4); println(!(1 > 2)); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "String",
+              "a\n"
+            ],
+            [
+              "PUSH",
+              "String",
+              "b"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "3"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "4"
+            ],
+            [
+              "BINARY",
+              "*"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "BINARY",
+              ">"
+            ],
+            [
+              "UNARY",
+              "!"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "enum LookupError {\n    Unavailable(String),\n    InvalidId,\n}\n\nstruct User {\n    const id: i64;\n    const name: String;\n}\n\nfn findUser(id: i64) -> Result<Option<User>, LookupError> {\n    if (id < 0) {\n        return Err(LookupError::InvalidId);\n    }\n    if (id == 42) {\n        return Ok(Some(User { id: 42, name: \"Alice\" }));\n    }\n    if (id == 500) {\n        return Err(LookupError::Unavailable(\"Database unavailable\"));\n    }\n    return Ok(None);\n}\n\nfn userName(id: i64) -> Result<String, LookupError> {\n    const user = findUser(id)?;\n    return Ok(match (user) {\n        Some(found) => found.name,\n        None => \"Anonymous\",\n    });\n}\n\nfn report(id: i64) {\n    println(match (userName(id)) {\n        Ok(name) => name,\n        Err(error) => match (error) {\n            LookupError::Unavailable(message) => message,\n            LookupError::InvalidId => \"Invalid user ID\",\n        },\n    });\n}\n\nfn main() {\n    report(42);\n    report(7);\n    report(-1);\n    report(500);\n}\n",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "User": {
+          "id": {
+            "name": "id",
+            "type": "i64",
+            "mutable": false
+          },
+          "name": {
+            "name": "name",
+            "type": "String",
+            "mutable": false
+          }
+        }
+      },
+      "enums": {
+        "LookupError": {
+          "InvalidId": [],
+          "Unavailable": [
+            "String"
+          ]
+        }
+      },
+      "functions": {
+        "findUser": {
+          "params": [
+            "id"
+          ],
+          "paramTypes": [
+            "i64"
+          ],
+          "result": "Result<Option<User>,LookupError>",
+          "code": [
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "BINARY",
+              "<"
+            ],
+            [
+              "JUMP_FALSE",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "ENUM",
+              "LookupError",
+              "InvalidId",
+              0
+            ],
+            [
+              "ENUM",
+              "Result<Option<User>,LookupError>",
+              "Err",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              12
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "42"
+            ],
+            [
+              "BINARY",
+              "=="
+            ],
+            [
+              "JUMP_FALSE",
+              25
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "42"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Alice"
+            ],
+            [
+              "STRUCT",
+              "User",
+              [
+                "id",
+                "name"
+              ]
+            ],
+            [
+              "ENUM",
+              "Option<User>",
+              "Some",
+              1
+            ],
+            [
+              "ENUM",
+              "Result<Option<User>,LookupError>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              27
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "500"
+            ],
+            [
+              "BINARY",
+              "=="
+            ],
+            [
+              "JUMP_FALSE",
+              38
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Database unavailable"
+            ],
+            [
+              "ENUM",
+              "LookupError",
+              "Unavailable",
+              1
+            ],
+            [
+              "ENUM",
+              "Result<Option<User>,LookupError>",
+              "Err",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              40
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "ENUM",
+              "Option<User>",
+              "None",
+              0
+            ],
+            [
+              "ENUM",
+              "Result<Option<User>,LookupError>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "42"
+            ],
+            [
+              "CALL",
+              "report",
+              1
+            ],
+            [
+              "PUSH",
+              "i64",
+              "7"
+            ],
+            [
+              "CALL",
+              "report",
+              1
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-1"
+            ],
+            [
+              "CALL",
+              "report",
+              1
+            ],
+            [
+              "PUSH",
+              "i64",
+              "500"
+            ],
+            [
+              "CALL",
+              "report",
+              1
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "report": {
+          "params": [
+            "id"
+          ],
+          "paramTypes": [
+            "i64"
+          ],
+          "result": "void",
+          "code": [
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "CALL",
+              "userName",
+              1
+            ],
+            [
+              "MATCH_VARIANT",
+              "Ok",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "name"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "name"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              34
+            ],
+            [
+              "MATCH_VARIANT",
+              "Err",
+              33
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "error"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "error"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Unavailable",
+              24
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "message"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "message"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              31
+            ],
+            [
+              "MATCH_VARIANT",
+              "InvalidId",
+              30
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Invalid user ID"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              31
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              34
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "userName": {
+          "params": [
+            "id"
+          ],
+          "paramTypes": [
+            "i64"
+          ],
+          "result": "Result<String,LookupError>",
+          "code": [
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "CALL",
+              "findUser",
+              1
+            ],
+            [
+              "TRY",
+              "Result<String,LookupError>",
+              "Ok"
+            ],
+            [
+              "DECLARE",
+              "user"
+            ],
+            [
+              "LOAD",
+              "user"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              14
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "found"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "found"
+            ],
+            [
+              "FIELD",
+              "name"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              21
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              20
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Anonymous"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              21
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "ENUM",
+              "Result<String,LookupError>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "User": {}
+      }
+    }
+  },
+  {
+    "source": "fn consume(value: Option<i64>) -> i64 {\n    return match (value) { Some(n) => n, None => 0 };\n  } fn main() {\n    let value: Option<i64> = None;\n    println(consume(value)); value = Some(9);\n    println(consume(value)); println(consume(None));\n    const inferred = Some(4); println(consume(inferred));\n  }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "consume": {
+          "params": [
+            "value"
+          ],
+          "paramTypes": [
+            "Option<i64>"
+          ],
+          "result": "i64",
+          "code": [
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              9
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              16
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              15
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              16
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "ENUM",
+              "Option<i64>",
+              "None",
+              0
+            ],
+            [
+              "DECLARE",
+              "value"
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "CALL",
+              "consume",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "9"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "Some",
+              1
+            ],
+            [
+              "STORE",
+              [
+                "value"
+              ]
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "CALL",
+              "consume",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "None",
+              0
+            ],
+            [
+              "CALL",
+              "consume",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "4"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "Some",
+              1
+            ],
+            [
+              "DECLARE",
+              "inferred"
+            ],
+            [
+              "LOAD",
+              "inferred"
+            ],
+            [
+              "CALL",
+              "consume",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "struct Box { let value: Option<Result<Option<i64>,String>>; }\n  fn main() {\n    const box = Box { value: Some(Ok(Some(8))) };\n    const result: Result<Option<i64>,String> = match (box.value) { Some(r) => r, None => Err(\"missing\") };\n    println(match (result) { Ok(value) => match (value) { Some(n) => n, None => 0 }, Err(_) => -1 });\n  }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "Box": {
+          "value": {
+            "name": "value",
+            "type": "Option<Result<Option<i64>,String>>",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "8"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "Some",
+              1
+            ],
+            [
+              "ENUM",
+              "Result<Option<i64>,String>",
+              "Ok",
+              1
+            ],
+            [
+              "ENUM",
+              "Option<Result<Option<i64>,String>>",
+              "Some",
+              1
+            ],
+            [
+              "STRUCT",
+              "Box",
+              [
+                "value"
+              ]
+            ],
+            [
+              "DECLARE",
+              "box"
+            ],
+            [
+              "LOAD",
+              "box"
+            ],
+            [
+              "FIELD",
+              "value"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              16
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "r"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "r"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              24
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              23
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "missing"
+            ],
+            [
+              "ENUM",
+              "Result<Option<i64>,String>",
+              "Err",
+              1
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              24
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "DECLARE",
+              "result"
+            ],
+            [
+              "LOAD",
+              "result"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Ok",
+              49
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "value"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              40
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              47
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              46
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              47
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              58
+            ],
+            [
+              "MATCH_VARIANT",
+              "Err",
+              57
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "POP"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-1"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              58
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "Box": {}
+      }
+    }
+  },
+  {
+    "source": "enum Event { Empty, Pair(i64,String) }\n    fn main() { const n = 10; const e = Event::Pair(3,\"hello\");\n      println(match (e) { Event::Empty => \"empty\", Event::Pair(n,message) => message });\n      println(n);\n      println(match (e) { Event::Empty => 0, Event::Pair(n,_) => n });\n    }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "enums": {
+        "Event": {
+          "Empty": [],
+          "Pair": [
+            "i64",
+            "String"
+          ]
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "10"
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "3"
+            ],
+            [
+              "PUSH",
+              "String",
+              "hello"
+            ],
+            [
+              "ENUM",
+              "Event",
+              "Pair",
+              2
+            ],
+            [
+              "DECLARE",
+              "e"
+            ],
+            [
+              "LOAD",
+              "e"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Empty",
+              13
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "empty"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              24
+            ],
+            [
+              "MATCH_VARIANT",
+              "Pair",
+              23
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "PAYLOAD",
+              1
+            ],
+            [
+              "DECLARE",
+              "message"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "message"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              24
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "e"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Empty",
+              34
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              45
+            ],
+            [
+              "MATCH_VARIANT",
+              "Pair",
+              44
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "PAYLOAD",
+              1
+            ],
+            [
+              "POP"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              45
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn subject() -> Option<i64> { println(\"subject\"); return Some(1); }\n    fn arm() -> i64 { println(\"wrong arm\"); return 0; }\n    fn main() { println(10 + match (subject()) { Some(n) => n, None => arm() }); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "arm": {
+          "params": [],
+          "result": "i64",
+          "code": [
+            [
+              "PUSH",
+              "String",
+              "wrong arm"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "10"
+            ],
+            [
+              "CALL",
+              "subject",
+              0
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              17
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              16
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "CALL",
+              "arm",
+              0
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              17
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "subject": {
+          "params": [],
+          "result": "Option<i64>",
+          "code": [
+            [
+              "PUSH",
+              "String",
+              "subject"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "Some",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn main() { const value = Some(1); match (value) { Some(n) => println(n), None => println(0) }; }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "Some",
+              1
+            ],
+            [
+              "DECLARE",
+              "value"
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              13
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              21
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              20
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              21
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn step(ok: bool) -> Result<i64,String> {\n      if (ok) { return Ok(3); } return Err(\"failed\");\n    }\n    fn next(ok: bool) -> Result<String,String> {\n      if (true) { const n = 100 + step(ok)?; println(n); }\n      println(\"continued\"); return Ok(\"done\");\n    }\n    fn main() {\n      println(match (next(false)) { Ok(s) => s, Err(e) => e });\n      println(match (next(true)) { Ok(s) => s, Err(e) => e });\n    }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "bool",
+              false
+            ],
+            [
+              "CALL",
+              "next",
+              1
+            ],
+            [
+              "MATCH_VARIANT",
+              "Ok",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              19
+            ],
+            [
+              "MATCH_VARIANT",
+              "Err",
+              18
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "e"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "e"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              19
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "CALL",
+              "next",
+              1
+            ],
+            [
+              "MATCH_VARIANT",
+              "Ok",
+              30
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              39
+            ],
+            [
+              "MATCH_VARIANT",
+              "Err",
+              38
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "e"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "e"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              39
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "next": {
+          "params": [
+            "ok"
+          ],
+          "paramTypes": [
+            "bool"
+          ],
+          "result": "Result<String,String>",
+          "code": [
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "JUMP_FALSE",
+              13
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "100"
+            ],
+            [
+              "LOAD",
+              "ok"
+            ],
+            [
+              "CALL",
+              "step",
+              1
+            ],
+            [
+              "TRY",
+              "Result<String,String>",
+              "Ok"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "LOAD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              15
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "PUSH",
+              "String",
+              "continued"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "String",
+              "done"
+            ],
+            [
+              "ENUM",
+              "Result<String,String>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "step": {
+          "params": [
+            "ok"
+          ],
+          "paramTypes": [
+            "bool"
+          ],
+          "result": "Result<i64,String>",
+          "code": [
+            [
+              "LOAD",
+              "ok"
+            ],
+            [
+              "JUMP_FALSE",
+              8
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "3"
+            ],
+            [
+              "ENUM",
+              "Result<i64,String>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "PUSH",
+              "String",
+              "failed"
+            ],
+            [
+              "ENUM",
+              "Result<i64,String>",
+              "Err",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "fn step(ok: bool) -> Option<i64> { if (ok) { return Some(1); } return None; }\n    fn next(ok: bool) -> Option<String> { const n = step(ok)?; return Some(\"found\"); }\n    fn main() {\n      println(match (next(false)) { Some(s) => s, None => \"missing\" });\n      println(match (next(true)) { Some(s) => s, None => \"missing\" });\n    }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "bool",
+              false
+            ],
+            [
+              "CALL",
+              "next",
+              1
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              17
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              16
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "missing"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              17
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "CALL",
+              "next",
+              1
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              28
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              35
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              34
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "missing"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              35
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "next": {
+          "params": [
+            "ok"
+          ],
+          "paramTypes": [
+            "bool"
+          ],
+          "result": "Option<String>",
+          "code": [
+            [
+              "LOAD",
+              "ok"
+            ],
+            [
+              "CALL",
+              "step",
+              1
+            ],
+            [
+              "TRY",
+              "Option<String>",
+              "Some"
+            ],
+            [
+              "DECLARE",
+              "n"
+            ],
+            [
+              "PUSH",
+              "String",
+              "found"
+            ],
+            [
+              "ENUM",
+              "Option<String>",
+              "Some",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "step": {
+          "params": [
+            "ok"
+          ],
+          "paramTypes": [
+            "bool"
+          ],
+          "result": "Option<i64>",
+          "code": [
+            [
+              "LOAD",
+              "ok"
+            ],
+            [
+              "JUMP_FALSE",
+              8
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "Some",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "ENUM",
+              "Option<i64>",
+              "None",
+              0
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "struct S { let n: i64; } enum E { Value(S), Shared(&S) }\n    fn main() {\n      let original = S { n: 1 }; const e = E::Value(original); original.n = 2;\n      println(match (e) { E::Value(s) => s.n, E::Shared(s) => s.n });\n      const shared = &S { n: 3 }; const refEnum = E::Shared(shared); shared.n = 4;\n      println(match (refEnum) { E::Value(s) => s.n, E::Shared(s) => s.n });\n    }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "S": {
+          "n": {
+            "name": "n",
+            "type": "i64",
+            "mutable": true
+          }
+        }
+      },
+      "enums": {
+        "E": {
+          "Shared": [
+            "&S"
+          ],
+          "Value": [
+            "S"
+          ]
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "DECLARE",
+              "original"
+            ],
+            [
+              "LOAD",
+              "original"
+            ],
+            [
+              "ENUM",
+              "E",
+              "Value",
+              1
+            ],
+            [
+              "DECLARE",
+              "e"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "STORE",
+              [
+                "original",
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "e"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Value",
+              18
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              28
+            ],
+            [
+              "MATCH_VARIANT",
+              "Shared",
+              27
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              28
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "3"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "shared"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "ENUM",
+              "E",
+              "Shared",
+              1
+            ],
+            [
+              "DECLARE",
+              "refEnum"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "4"
+            ],
+            [
+              "STORE",
+              [
+                "shared",
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "refEnum"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Value",
+              48
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              58
+            ],
+            [
+              "MATCH_VARIANT",
+              "Shared",
+              57
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              58
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "S": {}
+      }
+    }
+  },
+  {
+    "source": "enum E { Next(&S), End } struct S { let e: E; } fn main() {}",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "S": {
+          "e": {
+            "name": "e",
+            "type": "E",
+            "mutable": true
+          }
+        }
+      },
+      "enums": {
+        "E": {
+          "End": [],
+          "Next": [
+            "&S"
+          ]
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "S": {}
+      }
+    }
+  },
+  {
+    "source": "enum E { A } fn main() { println(1); }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {},
+      "enums": {
+        "E": {
+          "A": []
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "struct S { let n: i64; }\n    fn mutate(s: &S) -> i64 { s.n += 1; return s.n; }\n    fn main() { const s = &S { n: 0 }; const value = Some(s);\n      println(match (value) { Some(target) => mutate(target), None => -1 }); println(s.n);\n    }",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "S": {
+          "n": {
+            "name": "n",
+            "type": "i64",
+            "mutable": true
+          }
+        }
+      },
+      "functions": {
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "S",
+              [
+                "n"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "s"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "ENUM",
+              "Option<&S>",
+              "Some",
+              1
+            ],
+            [
+              "DECLARE",
+              "value"
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              17
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "target"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "target"
+            ],
+            [
+              "CALL",
+              "mutate",
+              1
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              24
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              23
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-1"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              24
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "mutate": {
+          "params": [
+            "s"
+          ],
+          "paramTypes": [
+            "&S"
+          ],
+          "result": "i64",
+          "code": [
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "s",
+                "n"
+              ]
+            ],
+            [
+              "LOAD",
+              "s"
+            ],
+            [
+              "FIELD",
+              "n"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "S": {}
+      }
+    }
+  },
+  {
+    "file": "../../examples/tour.press",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "Counter": {
+          "count": {
+            "name": "count",
+            "type": "i64",
+            "mutable": true
+          },
+          "name": {
+            "name": "name",
+            "type": "String",
+            "mutable": false
+          }
+        }
+      },
+      "functions": {
+        "Counter::add": {
+          "params": [
+            "self",
+            "amount"
+          ],
+          "paramTypes": [
+            "Counter",
+            "i64"
+          ],
+          "result": "Result<i64,String>",
+          "code": [
+            [
+              "LOAD",
+              "amount"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "BINARY",
+              "<"
+            ],
+            [
+              "JUMP_FALSE",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Amount must be non-negative"
+            ],
+            [
+              "ENUM",
+              "Result<i64,String>",
+              "Err",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              12
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "LOAD",
+              "amount"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "self",
+                "count"
+              ]
+            ],
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "ENUM",
+              "Result<i64,String>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ],
+          "receiver": "Counter"
+        },
+        "Counter::label": {
+          "params": [
+            "self"
+          ],
+          "paramTypes": [
+            "Counter"
+          ],
+          "result": "String",
+          "code": [
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "name"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ],
+          "receiver": "Counter"
+        },
+        "labelOf<Counter>": {
+          "params": [
+            "value"
+          ],
+          "paramTypes": [
+            "Counter"
+          ],
+          "result": "String",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "value"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "label",
+              0
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "String",
+              "Tasks"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "name",
+                "count"
+              ]
+            ],
+            [
+              "DECLARE",
+              "original"
+            ],
+            [
+              "LOAD",
+              "original"
+            ],
+            [
+              "DECLARE",
+              "copied"
+            ],
+            [
+              "LOAD",
+              "copied"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "copied",
+                "count"
+              ]
+            ],
+            [
+              "LOAD",
+              "original"
+            ],
+            [
+              "CALL",
+              "labelOf<Counter>",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "original"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "copied"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Shared tasks"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "name",
+                "count"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "shared"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "DECLARE",
+              "alias"
+            ],
+            [
+              "LOAD",
+              "alias"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "3"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "alias",
+                "count"
+              ]
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "CALL",
+              "printLabel",
+              1
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "CALL",
+              "update",
+              2
+            ],
+            [
+              "MATCH_VARIANT",
+              "Ok",
+              48
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "message"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "message"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              57
+            ],
+            [
+              "MATCH_VARIANT",
+              "Err",
+              56
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "error"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "error"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              57
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-1"
+            ],
+            [
+              "CALL",
+              "update",
+              2
+            ],
+            [
+              "MATCH_VARIANT",
+              "Ok",
+              69
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "message"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "message"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              78
+            ],
+            [
+              "MATCH_VARIANT",
+              "Err",
+              77
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "error"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "error"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              78
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "printLabel": {
+          "params": [
+            "value"
+          ],
+          "paramTypes": [
+            "&Named"
+          ],
+          "result": "void",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "value"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "label",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "update": {
+          "params": [
+            "counter",
+            "amount"
+          ],
+          "paramTypes": [
+            "&Counter",
+            "i64"
+          ],
+          "result": "Result<String,String>",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "counter"
+              ]
+            ],
+            [
+              "LOAD",
+              "amount"
+            ],
+            [
+              "CALL_METHOD",
+              "add",
+              1
+            ],
+            [
+              "TRY",
+              "Result<String,String>",
+              "Ok"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Updated"
+            ],
+            [
+              "ENUM",
+              "Result<String,String>",
+              "Ok",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "interfaces": {
+        "Named": {
+          "label": {
+            "params": [],
+            "result": "String",
+            "mutable": false
+          }
+        }
+      },
+      "methods": {
+        "Counter": {
+          "add": "Counter::add",
+          "label": "Counter::label"
+        }
+      }
+    }
+  },
+  {
+    "file": "../../examples/interfaces.press",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 3,
+      "structs": {
+        "Counter": {
+          "count": {
+            "name": "count",
+            "type": "i64",
+            "mutable": true
+          },
+          "id": {
+            "name": "id",
+            "type": "i64",
+            "mutable": false
+          }
+        },
+        "Pair<String>": {
+          "first": {
+            "name": "first",
+            "type": "String",
+            "mutable": false
+          },
+          "second": {
+            "name": "second",
+            "type": "String",
+            "mutable": false
+          }
+        },
+        "Pair<i64>": {
+          "first": {
+            "name": "first",
+            "type": "i64",
+            "mutable": false
+          },
+          "second": {
+            "name": "second",
+            "type": "i64",
+            "mutable": false
+          }
+        }
+      },
+      "functions": {
+        "Counter::identity": {
+          "params": [
+            "self"
+          ],
+          "paramTypes": [
+            "Counter"
+          ],
+          "result": "i64",
+          "code": [
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "id"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ],
+          "receiver": "Counter"
+        },
+        "Counter::increment": {
+          "params": [
+            "self"
+          ],
+          "paramTypes": [
+            "Counter"
+          ],
+          "result": "void",
+          "code": [
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "self",
+                "count"
+              ]
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ],
+          "receiver": "Counter"
+        },
+        "Pair<String>::firstValue": {
+          "params": [
+            "self"
+          ],
+          "paramTypes": [
+            "Pair<String>"
+          ],
+          "result": "String",
+          "code": [
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "first"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ],
+          "receiver": "Pair<String>"
+        },
+        "Pair<i64>::firstValue": {
+          "params": [
+            "self"
+          ],
+          "paramTypes": [
+            "Pair<i64>"
+          ],
+          "result": "i64",
+          "code": [
+            [
+              "LOAD",
+              "self"
+            ],
+            [
+              "FIELD",
+              "first"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ],
+          "receiver": "Pair<i64>"
+        },
+        "incrementAndIdentify<&Counter>": {
+          "params": [
+            "item"
+          ],
+          "paramTypes": [
+            "&Counter"
+          ],
+          "result": "i64",
+          "code": [
+            [
+              "LOAD",
+              "item"
+            ],
+            [
+              "DECLARE",
+              "local"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "local"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "increment",
+              0
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "local"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "identity",
+              0
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "PUSH",
+              "i64",
+              "7"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "id",
+                "count"
+              ]
+            ],
+            [
+              "DECLARE",
+              "value"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "value"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "increment",
+              0
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "7"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "id",
+                "count"
+              ]
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "shared"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "shared"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "increment",
+              0
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "CALL",
+              "printIdentity",
+              1
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "DECLARE",
+              "first"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "first"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "identity",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "7"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "99"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "id",
+                "count"
+              ]
+            ],
+            [
+              "CALL",
+              "sameIdentity<Counter>",
+              2
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "value"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "8"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "STRUCT",
+              "Counter",
+              [
+                "id",
+                "count"
+              ]
+            ],
+            [
+              "CALL",
+              "sameIdentity<Counter>",
+              2
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "CALL",
+              "incrementAndIdentify<&Counter>",
+              1
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "shared"
+            ],
+            [
+              "FIELD",
+              "count"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "10"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "20"
+            ],
+            [
+              "STRUCT",
+              "Pair<i64>",
+              [
+                "first",
+                "second"
+              ]
+            ],
+            [
+              "DECLARE",
+              "pair"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "pair"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "firstValue",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "String",
+              "hello"
+            ],
+            [
+              "PUSH",
+              "String",
+              "world"
+            ],
+            [
+              "STRUCT",
+              "Pair<String>",
+              [
+                "first",
+                "second"
+              ]
+            ],
+            [
+              "DECLARE",
+              "inferred"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "inferred"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "firstValue",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "printIdentity": {
+          "params": [
+            "item"
+          ],
+          "paramTypes": [
+            "&Identifiable"
+          ],
+          "result": "void",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "item"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "identity",
+              0
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "sameIdentity<Counter>": {
+          "params": [
+            "left",
+            "right"
+          ],
+          "paramTypes": [
+            "Counter",
+            "Counter"
+          ],
+          "result": "bool",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "left"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "identity",
+              0
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "right"
+              ]
+            ],
+            [
+              "CALL_METHOD",
+              "identity",
+              0
+            ],
+            [
+              "BINARY",
+              "=="
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "interfaces": {
+        "Identifiable": {
+          "identity": {
+            "params": [],
+            "result": "i64",
+            "mutable": false
+          }
+        },
+        "Incrementable": {
+          "increment": {
+            "params": [],
+            "result": "void",
+            "mutable": true
+          }
+        }
+      },
+      "methods": {
+        "Counter": {
+          "identity": "Counter::identity",
+          "increment": "Counter::increment"
+        },
+        "Pair<String>": {
+          "firstValue": "Pair<String>::firstValue"
+        },
+        "Pair<i64>": {
+          "firstValue": "Pair<i64>::firstValue"
+        }
+      }
+    }
+  },
+  {
+    "file": "../../examples/tasks/main.press",
+    "artifact": {
+      "format": "press-bytecode",
+      "version": 4,
+      "structs": {
+        "Task": {
+          "done": {
+            "name": "done",
+            "type": "bool",
+            "mutable": true
+          },
+          "id": {
+            "name": "id",
+            "type": "i64",
+            "mutable": false
+          },
+          "title": {
+            "name": "title",
+            "type": "String",
+            "mutable": false
+          }
+        }
+      },
+      "functions": {
+        "addTask": {
+          "params": [
+            "store",
+            "id",
+            "title"
+          ],
+          "paramTypes": [
+            "&Map<i64,Task>",
+            "i64",
+            "String"
+          ],
+          "result": "void",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "store"
+              ]
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "LOAD",
+              "title"
+            ],
+            [
+              "PUSH",
+              "bool",
+              false
+            ],
+            [
+              "STRUCT",
+              "Task",
+              [
+                "id",
+                "title",
+                "done"
+              ]
+            ],
+            [
+              "CALL_COLLECTION",
+              "set",
+              2,
+              true
+            ],
+            [
+              "POP"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "completeTask": {
+          "params": [
+            "store",
+            "id"
+          ],
+          "paramTypes": [
+            "&Map<i64,Task>",
+            "i64"
+          ],
+          "result": "Option<Task>",
+          "code": [
+            [
+              "LOAD_PATH",
+              [
+                "store"
+              ]
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "CALL_COLLECTION",
+              "get",
+              1,
+              true
+            ],
+            [
+              "TRY",
+              "Option<Task>",
+              "Some"
+            ],
+            [
+              "DECLARE",
+              "task"
+            ],
+            [
+              "PUSH",
+              "bool",
+              true
+            ],
+            [
+              "STORE",
+              [
+                "task",
+                "done"
+              ]
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "store"
+              ]
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "LOAD",
+              "task"
+            ],
+            [
+              "CALL_COLLECTION",
+              "set",
+              2,
+              true
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "task"
+            ],
+            [
+              "ENUM",
+              "Option<Task>",
+              "Some",
+              1
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "main": {
+          "params": [],
+          "result": "void",
+          "code": [
+            [
+              "COLLECTION",
+              "Map",
+              0
+            ],
+            [
+              "REF"
+            ],
+            [
+              "DECLARE",
+              "store"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "COLLECTION",
+              "List",
+              2
+            ],
+            [
+              "DECLARE",
+              "order"
+            ],
+            [
+              "LOAD",
+              "store"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Build collections"
+            ],
+            [
+              "CALL",
+              "addTask",
+              3
+            ],
+            [
+              "LOAD",
+              "store"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "2"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Add modules"
+            ],
+            [
+              "CALL",
+              "addTask",
+              3
+            ],
+            [
+              "LOAD",
+              "store"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "CALL",
+              "completeTask",
+              2
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              27
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "task"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "task"
+            ],
+            [
+              "CALL",
+              "taskLabel",
+              1
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              34
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              33
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Task not found"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              34
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "0"
+            ],
+            [
+              "DECLARE",
+              "index"
+            ],
+            [
+              "LOAD",
+              "index"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "order"
+              ]
+            ],
+            [
+              "CALL_COLLECTION",
+              "len",
+              0,
+              true
+            ],
+            [
+              "BINARY",
+              "<"
+            ],
+            [
+              "JUMP_FALSE",
+              88
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "order"
+              ]
+            ],
+            [
+              "LOAD",
+              "index"
+            ],
+            [
+              "CALL_COLLECTION",
+              "get",
+              1,
+              true
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              54
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "id"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              61
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              60
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "-1"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              61
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "DECLARE",
+              "id"
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "store"
+              ]
+            ],
+            [
+              "LOAD",
+              "id"
+            ],
+            [
+              "CALL_COLLECTION",
+              "get",
+              1,
+              true
+            ],
+            [
+              "MATCH_VARIANT",
+              "Some",
+              74
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PAYLOAD",
+              0
+            ],
+            [
+              "DECLARE",
+              "task"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "LOAD",
+              "task"
+            ],
+            [
+              "CALL",
+              "taskLabel",
+              1
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              81
+            ],
+            [
+              "MATCH_VARIANT",
+              "None",
+              80
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "POP"
+            ],
+            [
+              "PUSH",
+              "String",
+              "Task not found"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              81
+            ],
+            [
+              "TRAP",
+              "Invalid enum variant"
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "LOAD",
+              "index"
+            ],
+            [
+              "PUSH",
+              "i64",
+              "1"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "STORE",
+              [
+                "index"
+              ]
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              37
+            ],
+            [
+              "LOAD_PATH",
+              [
+                "store"
+              ]
+            ],
+            [
+              "CALL_COLLECTION",
+              "len",
+              0,
+              true
+            ],
+            [
+              "PRINT"
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        },
+        "taskLabel": {
+          "params": [
+            "task"
+          ],
+          "paramTypes": [
+            "Task"
+          ],
+          "result": "String",
+          "code": [
+            [
+              "PUSH",
+              "String",
+              "[ ] "
+            ],
+            [
+              "DECLARE",
+              "prefix"
+            ],
+            [
+              "LOAD",
+              "task"
+            ],
+            [
+              "FIELD",
+              "done"
+            ],
+            [
+              "JUMP_FALSE",
+              10
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "PUSH",
+              "String",
+              "[x] "
+            ],
+            [
+              "STORE",
+              [
+                "prefix"
+              ]
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "JUMP",
+              12
+            ],
+            [
+              "ENTER"
+            ],
+            [
+              "EXIT"
+            ],
+            [
+              "LOAD",
+              "prefix"
+            ],
+            [
+              "LOAD",
+              "task"
+            ],
+            [
+              "FIELD",
+              "title"
+            ],
+            [
+              "BINARY",
+              "+"
+            ],
+            [
+              "RETURN",
+              true
+            ],
+            [
+              "RETURN",
+              false
+            ]
+          ]
+        }
+      },
+      "methods": {
+        "Task": {}
+      }
+    }
+  }
+]
