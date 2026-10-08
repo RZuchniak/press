@@ -15,4 +15,5 @@ jobs:
       - run: go vet ./...
       - run: go build ./cmd/press
       - run: go build ./cmd/pressbench
+      - run: GOOS=js GOARCH=wasm go build -trimpath -o press.wasm ./cmd/presswasm
       - run: ./pressbench -iterations 1 -samples 1

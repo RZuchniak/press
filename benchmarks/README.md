@@ -1,5 +1,10 @@
 # Interpreter baseline
 
+The [backend cleanup comparison](backend-cleanup-2026-10-05.md) records warmed
+execution before and after separating transport, preparation, values and execution.
+The [typed compiler comparison](typed-compiler-2026-10-05.md) records compilation,
+fresh loading and execution after adding structured types and typed compiler IR.
+
 Build the CLI and standalone benchmark executable first. There is no Node dependency.
 
 ```powershell
@@ -19,6 +24,8 @@ checks a JSON bytecode round trip, warms the workload, and separates:
 - `compile`: source parsing, type checking and bytecode generation.
 - `vm`: execution of already-compiled bytecode, including frames, scopes, value
   copying, formatting and checksum verification; console output is suppressed.
+- `load_execute`: decoding a fresh bytecode artifact, preparing its executable
+  plan, and execution. This includes costs excluded from warmed VM timing.
 - `native_go`: the equivalent algorithm using native typed Go values. Compiler
   optimizations remain enabled. Selected call/allocation boundaries use `noinline`
   so they actually exercise the intended operation. These are comparison points,
@@ -36,7 +43,24 @@ remains included. Results include `ns/op`, allocated `B/op`, `allocs/op`, GC cyc
 GC pause time and live heap bytes at the end of a batch. Allocations are truncated
 to integer averages. Heap size is not per-operation memory or peak process RSS.
 
-## Recorded run: 2026-10-03
+## Collection baseline: 2026-10-05
+
+Collection workloads added on 2026-10-05 insert 1,000 values, then look them up
+and sum them. Three calibrated samples on Windows/amd64, Go 1.27.1, GOMAXPROCS=12:
+
+| Workload | Warm VM median (ms) | Native Go median (ms) | VM allocated B/op | VM allocs/op |
+| --- | ---: | ---: | ---: | ---: |
+| List operations | 0.722 | 0.016 | 202,017 | 2,017 |
+| Map operations | 1.018 | 0.099 | 539,106 | 3,028 |
+
+Raw results: [lists](collections-list-windows-amd64.json) and
+[maps](collections-map-windows-amd64.json). These use explicit shared collections
+to avoid deep copies on every lookup. The VM still allocates `Option` wrappers for
+lookups and map replacement results. These figures measure allocation traffic,
+not a memory ceiling or server performance. Native algorithms use Go slices/maps
+with primitive elements, rather than the VM's tagged values and Option objects.
+
+## Original baseline: 2026-10-03
 
 Windows/amd64, Go 1.27.1, GOMAXPROCS=12, three calibrated samples per phase. Raw
 samples and the actual iteration counts are in `baseline-windows-amd64.json`.
@@ -77,6 +101,8 @@ Profiles cover the selected benchmark process, including warmup, calibration and
 explicit pre-batch GC. Profiling changes timing; compare unprofiled samples for
 performance conclusions. The heap profile supports both live-heap and cumulative
 allocation views through pprof. Binary profiles remain in the ignored cache.
+
+The October 5 optimization report is in [optimization-2026-10-05.md](optimization-2026-10-05.md).
 
 Validation: all workload checksums and bytecode round trips passed; 64 historical
 and 44 feature cases passed through the native CLI. Go vet passed. Windows

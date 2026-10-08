@@ -4,6 +4,11 @@ A working first slice of the language discussed in this project. **Press** and
 `.press` are provisional names. This is a language experiment, not a production
 runtime or a performance demonstration.
 
+The current priority is a small, cohesive compiler and runtime: portable artifacts,
+predictable value semantics, clear internal contracts, and measured performance.
+Java-inspired portability does not require a bundled web framework. Feature growth
+follows backend quality rather than a checklist of application libraries.
+
 The compiler and VM are written in Go, using only its standard library. Building
 requires Go 1.22 or newer. The compiled CLI needs no Node.js or installed Go runtime.
 
@@ -13,6 +18,7 @@ go build -o bin/press.exe ./cmd/press
 .\bin\press.exe run examples/counter.press
 .\bin\press.exe run examples/results.press
 .\bin\press.exe run examples/interfaces.press
+.\bin\press.exe run examples/tasks/main.press
 .\bin\press.exe check examples/counter.press
 .\bin\press.exe compile examples/counter.press counter.pbc
 .\bin\press.exe exec counter.pbc
@@ -34,6 +40,11 @@ The fixture verification script exercises the historical cases through the built
 native CLI, supplementing the Go unit tests.
 
 ## Benchmarking
+
+The Go compiler and VM also build for the browser. See the
+[WebAssembly build and API instructions](docs/webassembly.md). This repository
+provides the Go WebAssembly target and JSON API; website and editor integration
+belong in the separate website project.
 
 Build `cmd/pressbench` to measure compilation separately from VM execution,
 allocations and native Go reference workloads. Optional CLI subprocess measurements
@@ -62,6 +73,8 @@ LLVM bytecode, and compatibility across future format versions is not promised.
 - Lexical block scopes, `if`/`else`, `while`, arithmetic, comparisons, short-circuit
   Boolean operators and primitive `println`.
 - Exact signed 64-bit arithmetic with overflow traps and division toward zero.
+- Typed `List<T>` and `Map<K, V>`, with value copies or explicit shared references.
+- Relative file imports linked into a standalone artifact.
 - Custom tagged enums with zero or multiple payload values.
 - Built-in `Option<T>` and `Result<T, E>`, including nested types.
 - Exhaustive match expressions with scoped, const payload bindings.
@@ -80,6 +93,57 @@ See `examples/counter.press` for a runnable example. Its output is:
 4
 Shared mutation works.
 ```
+
+## Collections and file imports
+
+```rust
+import "store.press";
+
+fn main() {
+    let values = List<i64>(10, 20);
+    values.push(30);
+    println(match (values.get(0)) { Some(n) => n, None => -1 });
+
+    const scores = &Map<String, i64>();
+    scores.set("Ada", 42);
+    println(scores.len());
+}
+```
+
+Collection constructors require explicit type arguments. `List<T>(...)` accepts
+initial elements; `Map<K, V>()` constructs an empty map. Map keys currently support
+`String`, `i64`, and `bool`. Collections are invariant, like other generic types.
+
+| Method | List<T> | Map<K, V> |
+| --- | --- | --- |
+| `len()` | `i64` | `i64` |
+| `get(key)` | `Option<T>`; index is `i64` | `Option<V>` |
+| `set(key, value)` | `bool`; false for an invalid index | `Option<V>` containing the replaced value |
+| `push(value)` | `void` | — |
+| `pop()` | `Option<T>` | — |
+| `contains(key)` | — | `bool` |
+| `remove(key)` | — | `Option<V>` containing the removed value |
+
+Indices start at zero. Negative or out-of-range list lookups return `None`.
+Assignment and value parameters recursively copy collection contents, preserving
+the identity of explicit references inside them. Lookup returns a value copy;
+update the collection with `set` to save changes to a retrieved value. Use
+`&List<T>(...)` or `&Map<K, V>()` when shared storage is intended or copying a large
+collection would be expensive. `const` forbids mutating a value collection;
+a const binding to a shared collection still allows shared mutation.
+
+Imports are relative to the importing file. `run`, `check`, and `compile` load the
+whole dependency graph; an imported file needs no `main`. Each normalized path is
+loaded once (case-insensitively on Windows), import cycles are rejected, and up to
+256 files are supported. All declarations currently share one namespace, with
+duplicates rejected. Namespaces, aliases, private declarations, package management,
+collection iteration, and map enumeration are deferred.
+
+For Go integrations, use `language.CompileFile(path)` to resolve imports;
+`language.Compile(source)` remains available for a single source string without
+imports. Linked bytecode includes dependencies, so execution needs no source files.
+See `examples/tasks/main.press` and `examples/tasks/store.press` for a runnable
+in-memory task store using imports, collections, structs, and `Option` propagation.
 
 ## Methods, interfaces and generics
 
@@ -167,7 +231,8 @@ constructors continue to use expected types rather than explicit constructor arg
 
 `examples/interfaces.press` demonstrates value mutation, shared interface dispatch,
 multiple bounds, inferred and explicit function calls, and generic struct methods.
-New artifacts use bytecode version 3; versions 1 and 2 remain executable.
+Artifacts containing collection instructions use bytecode version 4; other programs
+still emit version 3. Versions 1 through 4 remain executable with the current CLI.
 
 ## Absence, errors and tagged enums
 
@@ -243,13 +308,31 @@ Execution is single-threaded. There are configurable instruction and call-depth 
 programs. These limits are debugging aids, not a security boundary. Only execute
 trusted compiler-produced bytecode: the loader is not an untrusted-code verifier.
 
+The runtime prepares each Program once into numeric instructions, local slots and
+indexed struct layouts. Primitive stack values avoid Go interface boxing. Field
+reads copy only the selected result, and owned temporary values move between stack,
+locals, arguments and returns without redundant copies. Ordinary value assignment
+still produces independent nested value fields; explicit references still share.
+Short primitive instruction sequences are fused internally while keeping original
+bytecode PCs and instruction-limit/error ordering through a fallback path.
+
+Scratch arenas are pooled, cleared after execution (including errors), and capped
+to avoid retaining oversized buffers. Concurrent executions share immutable prepared
+metadata but have independent guest state. For Go callers, do not mutate a Program's
+executable metadata after its first Execute. Preparation is outside warmed VM timing;
+`load_execute` benchmarks include JSON decoding, preparation and execution.
+
 ## Next stages
 
-1. Collections, modules, diagnostics with source locations preserved in bytecode,
-   and a stronger bytecode verifier.
-2. Lightweight tasks, locks, cancellation and a small HTTP/JSON library.
-3. Measure startup, memory, throughput and latency of the Go-hosted VM. Evaluate
-   LLVM JIT/AOT if those measurements justify the additional runtime/GC work.
+1. Strengthen artifact validation with control-flow stack and type checks, building
+   on the interned type graph and typed compiler instructions.
+2. Preserve source locations through bytecode and improve runtime diagnostics.
+3. Measure startup, preparation and execution independently as internals evolve.
+   Evaluate LLVM JIT/AOT only if measurements justify the additional runtime/GC work.
+
+Collection iteration, cleanup syntax, namespaces and concurrency remain possible
+extensions. They are not prerequisites for the next backend milestone. See the
+[backend architecture notes](docs/backend.md) for current boundaries and invariants.
 
 There is no server framework, JIT or performance claim yet.
 Strings support concatenation and standard quoted escapes, not interpolation.
@@ -264,8 +347,23 @@ User-defined enums are not generic yet; generic functions and structs are suppor
 - `cmd/press`: native CLI and file-based integration tests.
 - `internal/language/parser.go`: lexer, syntax tree and parser.
 - `internal/language/compiler.go`: type checker and bytecode generation.
+- `internal/language/type_ref.go`: immutable interned types, structural substitution and inference.
+- `internal/language/compiler_ir.go`: typed compiler instructions and portable serialization.
 - `internal/language/types.go`: methods, interfaces, generic validation and specialization.
-- `internal/language/vm.go`: value copying, shared references and execution.
+- `internal/language/collections.go`: type checking and emission for collection operations.
+- `internal/language/collection_ops.go`: shared collection operation contracts.
+- `internal/language/collections_runtime.go`: collection storage and numeric dispatch.
+- `internal/language/modules.go`: file imports and linking before type checking.
+- `internal/language/bytecode.go`: portable artifact schema and JSON decoding.
+- `internal/language/validate.go`: instruction representation and link validation.
+- `internal/language/values.go`: copying, shared references and primitive operations.
+- `internal/language/vm.go`: frames, execution limits and instruction execution.
+- `internal/language/plan.go`: typed internal execution representation.
+- `internal/language/prepare.go`: cached instruction lowering, layouts and slot resolution.
+- `internal/language/optimize.go`: local optimization with original instruction budgets.
+- `internal/language/operators.go`: arithmetic identities shared across compiler and runtime.
+- `internal/language/testdata/compiler-artifacts.json`: 28 complete artifacts captured
+  before the type/IR refactor, checked against current compiler output.
 - `internal/language/testdata/regressions.json`: 64 source cases captured from the
   original implementation, covering output, compile errors and runtime errors.
 - `internal/language/testdata/node-*.json`: original compiled artifacts retained
