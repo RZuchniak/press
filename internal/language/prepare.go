@@ -5,6 +5,10 @@ import (
 )
 
 func prepare(program *Program) (plan *executionPlan, err error) {
+	return preparePlan(program, true)
+}
+
+func preparePlan(program *Program, optimize bool) (plan *executionPlan, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(languageError); ok {
@@ -210,7 +214,9 @@ func prepare(program *Program) (plan *executionPlan, err error) {
 				fail("Invalid bytecode jump")
 			}
 		}
-		optimizeFunction(fn, targets)
+		if optimize {
+			optimizeFunction(fn, targets)
+		}
 	}
 	return plan, nil
 }
