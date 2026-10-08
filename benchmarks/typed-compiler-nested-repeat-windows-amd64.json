@@ -1,0 +1,73 @@
+{
+  "goVersion": "go1.27.1",
+  "goos": "windows",
+  "goarch": "amd64",
+  "gomaxprocs": 12,
+  "measurements": [
+    {
+      "workload": "nested_value_copies",
+      "phase": "vm",
+      "sample": 1,
+      "iterations": 140,
+      "nsPerOp": 769257.1428571428,
+      "bytesPerOp": 512665,
+      "allocsPerOp": 8008,
+      "gcCycles": 20,
+      "heapAllocAfter": 2660560,
+      "gcPauseNanoseconds": 1513400,
+      "memoryScope": "benchmark_process"
+    },
+    {
+      "workload": "nested_value_copies",
+      "phase": "vm",
+      "sample": 2,
+      "iterations": 160,
+      "nsPerOp": 807418.125,
+      "bytesPerOp": 512593,
+      "allocsPerOp": 8008,
+      "gcCycles": 23,
+      "heapAllocAfter": 2487168,
+      "gcPauseNanoseconds": 2013200,
+      "memoryScope": "benchmark_process"
+    },
+    {
+      "workload": "nested_value_copies",
+      "phase": "vm",
+      "sample": 3,
+      "iterations": 140,
+      "nsPerOp": 826395,
+      "bytesPerOp": 512595,
+      "allocsPerOp": 8008,
+      "gcCycles": 20,
+      "heapAllocAfter": 2635312,
+      "gcPauseNanoseconds": 0,
+      "memoryScope": "benchmark_process"
+    },
+    {
+      "workload": "nested_value_copies",
+      "phase": "vm",
+      "sample": 4,
+      "iterations": 140,
+      "nsPerOp": 794961.4285714285,
+      "bytesPerOp": 512631,
+      "allocsPerOp": 8008,
+      "gcCycles": 20,
+      "heapAllocAfter": 2656968,
+      "gcPauseNanoseconds": 2530900,
+      "memoryScope": "benchmark_process"
+    },
+    {
+      "workload": "nested_value_copies",
+      "phase": "vm",
+      "sample": 5,
+      "iterations": 160,
+      "nsPerOp": 793620.625,
+      "bytesPerOp": 512591,
+      "allocsPerOp": 8008,
+      "gcCycles": 23,
+      "heapAllocAfter": 2500408,
+      "gcPauseNanoseconds": 0,
+      "memoryScope": "benchmark_process"
+    }
+  ]
+}
