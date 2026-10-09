@@ -1,0 +1,45 @@
+File: language.test.exe
+Build ID: [local build path redacted]
+Type: cpu
+Time: 2026-10-09 19:54:07 EDT
+Duration: 2.75s, Total samples = 2760ms (100.43%)
+Showing nodes accounting for 2040ms, 73.91% of 2760ms total
+Dropped 46 nodes (cum <= 13.80ms)
+Showing top 16 nodes out of 102
+      flat  flat%   sum%        cum   cum%
+     750ms 27.17% 27.17%     1280ms 46.38%  press/internal/language.(*machine).step
+     240ms  8.70% 35.87%     2600ms 94.20%  runtime.cgocall
+     200ms  7.25% 43.12%      200ms  7.25%  press/internal/language.(*machine).pop
+     180ms  6.52% 49.64%     2280ms 82.61%  runtime.callbackWrap
+     110ms  3.99% 53.62%      140ms  5.07%  press/internal/language.copyValue
+      90ms  3.26% 56.88%     1840ms 66.67%  press/internal/language.jitStepFrame
+      70ms  2.54% 59.42%     2060ms 74.64%  press/internal/language.jitCallback
+      70ms  2.54% 61.96%     2340ms 84.78%  runtime.cgocallbackg1
+      60ms  2.17% 64.13%       80ms  2.90%  press/internal/language.pathValue
+      50ms  1.81% 65.94%       50ms  1.81%  runtime.preemptM
+      40ms  1.45% 67.39%       40ms  1.45%  press/internal/language.arithmetic
+      40ms  1.45% 68.84%       60ms  2.17%  runtime.mallocgcSmallScanNoHeaderSC5
+      40ms  1.45% 70.29%       50ms  1.81%  runtime.reentersyscall
+      40ms  1.45% 71.74%       40ms  1.45%  runtime.semasleep
+      30ms  1.09% 72.83%       30ms  1.09%  internal/abi.(*IntArgRegBitmap).Get (inline)
+      30ms  1.09% 73.91%       30ms  1.09%  internal/runtime/maps.memHash64AES
+File: language.test.exe
+Build ID: [local build path redacted]
+Type: alloc_objects
+Time: 2026-10-09 19:54:10 EDT
+Showing nodes accounting for 6156624, 99.91% of 6162464 total
+Dropped 42 nodes (cum <= 30812)
+Showing top 12 nodes out of 24
+      flat  flat%   sum%        cum   cum%
+   2482308 40.28% 40.28%    3814944 61.91%  press/internal/language.(*machine).step
+   1609828 26.12% 66.40%    6156624 99.91%  press/internal/language.(*windowsLLVM).run
+   1332636 21.63% 88.03%    1332636 21.63%  press/internal/language.copyValue
+    731852 11.88% 99.91%     731852 11.88%  internal/sync.newEntryNode[go.shape.interface {},go.shape.interface {}] (inline)
+         0     0% 99.91%     731852 11.88%  internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Store (inline)
+         0     0% 99.91%     731852 11.88%  internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Swap
+         0     0% 99.91%    6156624 99.91%  press/internal/language.(*LLVMProgram).Execute
+         0     0% 99.91%    6156624 99.91%  press/internal/language.BenchmarkLLVMWorkloads.func1.1
+         0     0% 99.91%    6156624 99.91%  press/internal/language.executeLLVMPlan
+         0     0% 99.91%    6156624 99.91%  press/internal/language.init.func1.1
+         0     0% 99.91%    6156624 99.91%  press/internal/language.jitCallback
+         0     0% 99.91%    6156624 99.91%  press/internal/language.jitStepFrame
