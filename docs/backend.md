@@ -104,3 +104,20 @@ warmed execution before and after this separation.
 The [typed compiler measurements](../benchmarks/typed-compiler-2026-10-05.md) also
 cover compilation and fresh artifact loading. Twenty-eight full artifact snapshots
 captured before that migration check that serialization has not changed.
+
+## Optional LLVM backend
+
+The [experimental LLVM backend](llvm.md) uses a separate, unoptimized prepared
+plan and preserves the default VM's execution path. Scalar functions with verified
+stack/local types execute with native slots. Selected numeric loops inside
+object-bearing functions use a pinned primitive exchange buffer, while Go retains
+their object references. Other functions use native basic
+blocks and Go helpers, with frame roots held in a Go-owned registry. Go continues
+to manage guest objects. The helper instruction switch is generated from vm.go;
+regenerate it with `go generate ./internal/language` after VM semantic changes.
+
+LLVM code lifetime is owned by LLVMProgram, independently of guest memory.
+Compilation and disposal are explicit; executions reuse code with independent
+guest state. The initial native adapter is Windows/amd64. See the
+[initial LLVM measurements](../benchmarks/llvm-jit-2026-10-09.md) for the substantial
+costs of the helper path and the limits of the scalar results.
