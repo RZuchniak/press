@@ -1,0 +1,30 @@
+goos: windows
+goarch: amd64
+pkg: press/internal/language
+cpu: AMD Ryzen 5 3600X 6-Core Processor
+BenchmarkLLVMOptimizationProbe/mixed_loop/current-12 	   22807	      7793 ns/op	     496 B/op	       8 allocs/op
+BenchmarkLLVMOptimizationProbe/mixed_loop/current-12 	   22048	      7962 ns/op	     496 B/op	       8 allocs/op
+BenchmarkLLVMOptimizationProbe/mixed_loop/current-12 	   22786	      7991 ns/op	     496 B/op	       8 allocs/op
+BenchmarkLLVMOptimizationProbe/mixed_loop/O2-12      	   38928	      4633 ns/op	     496 B/op	       8 allocs/op
+BenchmarkLLVMOptimizationProbe/mixed_loop/O2-12      	   37976	      4766 ns/op	     496 B/op	       8 allocs/op
+BenchmarkLLVMOptimizationProbe/mixed_loop/O2-12      	   37923	      4629 ns/op	     496 B/op	       8 allocs/op
+BenchmarkLLVMOptimizationProbe/list_operations/current-12         	      76	   2198304 ns/op	  202298 B/op	    2018 allocs/op
+BenchmarkLLVMOptimizationProbe/list_operations/current-12         	      79	   2188620 ns/op	  202274 B/op	    2018 allocs/op
+BenchmarkLLVMOptimizationProbe/list_operations/current-12         	      80	   2184408 ns/op	  202291 B/op	    2018 allocs/op
+BenchmarkLLVMOptimizationProbe/list_operations/O2-12              	      79	   2224591 ns/op	  202293 B/op	    2018 allocs/op
+BenchmarkLLVMOptimizationProbe/list_operations/O2-12              	      69	   2207832 ns/op	  202312 B/op	    2018 allocs/op
+BenchmarkLLVMOptimizationProbe/list_operations/O2-12              	      81	   2371121 ns/op	  202291 B/op	    2018 allocs/op
+BenchmarkLLVMOptimizationProbe/arithmetic/current-12              	   22579	      8822 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/arithmetic/current-12              	   19233	      8978 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/arithmetic/current-12              	   22917	      8515 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/arithmetic/O2-12                   	   40024	      4774 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/arithmetic/O2-12                   	   35390	      4924 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/arithmetic/O2-12                   	   38950	      5420 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/function_calls/current-12          	   14895	     15509 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/function_calls/current-12          	   12002	     13826 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/function_calls/current-12          	   12032	     14227 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/function_calls/O2-12               	   30990	      6060 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/function_calls/O2-12               	   25448	      5913 ns/op	     336 B/op	       6 allocs/op
+BenchmarkLLVMOptimizationProbe/function_calls/O2-12               	   33558	      6240 ns/op	     336 B/op	       6 allocs/op
+PASS
+ok  	press/internal/language	6.606s

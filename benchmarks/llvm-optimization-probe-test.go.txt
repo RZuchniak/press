@@ -1,0 +1,96 @@
+package language
+
+import (
+	"os/exec"
+	"path/filepath"
+	"press/internal/bench"
+	"strings"
+	"testing"
+)
+
+// Temporary research probe, removed after recording its results.
+func optimizedProbe(t testing.TB, p *Program) *LLVMProgram {
+	t.Helper()
+	plan, err := preparePlan(p, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ir, symbols, mixed := emitLLVM(plan, p)
+	tool, _ := filepath.Abs("../../.tools/llvm/bin/opt.exe")
+	cmd := exec.Command(tool, "-passes=default<O2>", "-S", "-mtriple=x86_64-pc-windows-msvc", "-o", "-")
+	cmd.Stdin = strings.NewReader(ir)
+	optimized, err := cmd.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := llvmTestOptions(t)
+	config.Optimization = LLVMOptNone
+	native, err := newLLVMNative(string(optimized), symbols, mixed, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &LLVMProgram{plan: plan, native: native}
+}
+
+func TestLLVMOptimizationProbe(t *testing.T) {
+	sources := []string{mixedNumericLoop,
+		`fn main(){ println(9223372036854775807+1); }`,
+		`fn main(){println(false && (1/0==1)); println(-9223372036854775808 % -1);}`,
+		`fn recurse(n:i64)->i64 { if(n==0){ return 1; } return n*recurse(n-1); } fn main(){ println(recurse(8)); }`,
+	}
+	for _, w := range bench.Workloads() {
+		sources = append(sources, w.Source)
+	}
+	for _, s := range sources {
+		p, err := Compile(s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		j := optimizedProbe(t, p)
+		for steps := 1; steps <= 150; steps++ {
+			compareLLVM(t, p, j, Options{MaxSteps: steps})
+		}
+		compareLLVM(t, p, j, Options{})
+		for depth := 1; depth <= 8; depth++ {
+			compareLLVM(t, p, j, Options{MaxDepth: depth})
+		}
+		j.Close()
+	}
+}
+
+func BenchmarkLLVMOptimizationProbe(b *testing.B) {
+	workloads := []bench.Workload{{Name: "mixed_loop", Source: mixedNumericLoop}}
+	for _, w := range bench.Workloads() {
+		if w.Name == "arithmetic" || w.Name == "function_calls" || w.Name == "list_operations" {
+			workloads = append(workloads, w)
+		}
+	}
+	for _, w := range workloads {
+		b.Run(w.Name, func(b *testing.B) {
+			p, err := Compile(w.Source)
+			if err != nil {
+				b.Fatal(err)
+			}
+			config := llvmTestOptions(b)
+			config.Optimization = LLVMOptNone
+			current, err := CompileLLVM(p, config)
+			if err != nil {
+				b.Fatal(err)
+			}
+			defer current.Close()
+			optimized := optimizedProbe(b, p)
+			defer optimized.Close()
+			for n, j := range map[string]*LLVMProgram{"current": current, "O2": optimized} {
+				b.Run(n, func(b *testing.B) {
+					b.ReportAllocs()
+					options := Options{Print: func(string) {}}
+					for k := 0; k < b.N; k++ {
+						if err := j.Execute(options); err != nil {
+							b.Fatal(err)
+						}
+					}
+				})
+			}
+		})
+	}
+}
