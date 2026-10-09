@@ -4,9 +4,65 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
+
+func TestCLILLVMIR(t *testing.T) {
+	dir := t.TempDir()
+	source, target := filepath.Join(dir, "main.press"), filepath.Join(dir, "main.ll")
+	if err := os.WriteFile(source, []byte(`fn main() { println(42); }`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var output bytes.Buffer
+	if err := run([]string{"llvm-ir", source, target}, &output); err != nil {
+		t.Fatal(err)
+	}
+	ir, err := os.ReadFile(target)
+	if err != nil || !strings.Contains(string(ir), "define i64 @press_f0") || output.Len() != 0 {
+		t.Fatalf("%s / %v", ir, err)
+	}
+}
+
+func TestCLILLVMStandaloneArtifact(t *testing.T) {
+	if runtime.GOOS != "windows" || runtime.GOARCH != "amd64" {
+		t.Skip("Windows/amd64 adapter")
+	}
+	path := os.Getenv("PRESS_LLVM_DLL")
+	if path == "" {
+		path, _ = filepath.Abs(filepath.Join("..", "..", ".tools", "llvm", "bin", "LLVM-C.dll"))
+		if _, err := os.Stat(path); err != nil {
+			t.Skip("LLVM library unavailable")
+		}
+	}
+	t.Setenv("PRESS_LLVM_DLL", path)
+	dir := t.TempDir()
+	source, artifact := filepath.Join(dir, "main.press"), filepath.Join(dir, "main.pbc")
+	if err := os.WriteFile(source, []byte(`struct Box { let n:i64; } fn main() { const b=&Box { n:42 }; println(b.n); }`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var output bytes.Buffer
+	if err := run([]string{"run-llvm", source}, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.String() != "42\n" {
+		t.Fatal(output.String())
+	}
+	output.Reset()
+	if err := run([]string{"compile", source, artifact}, &output); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(source); err != nil {
+		t.Fatal(err)
+	}
+	if err := run([]string{"exec-llvm", artifact}, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.String() != "42\n" {
+		t.Fatal(output.String())
+	}
+}
 
 func TestCLICompileExecuteCheck(t *testing.T) {
 	directory := t.TempDir()
@@ -62,6 +118,17 @@ func TestCLIErrors(t *testing.T) {
 	}
 	err := run([]string{"check", file}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "Cannot assign") {
+		t.Fatal(err)
+	}
+}
+
+func TestCLIRejectsUnknownLLVMOptimization(t *testing.T) {
+	t.Setenv("PRESS_LLVM_OPT", "O9")
+	file := filepath.Join(t.TempDir(), "valid.press")
+	if err := os.WriteFile(file, []byte("fn main() { println(42); }"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := run([]string{"run-llvm", file}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "Unknown LLVM optimization") {
 		t.Fatal(err)
 	}
 }

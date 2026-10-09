@@ -9,19 +9,35 @@ import (
 )
 
 func run(args []string, stdout io.Writer) error {
-	usage := "Usage: press <run|check> source.press\n       press compile source.press output.pbc\n       press exec output.pbc"
+	usage := "Usage: press <run|run-llvm|check> source.press\n       press <compile|llvm-ir> source.press output\n       press <exec|exec-llvm> output.pbc"
 	if len(args) < 2 {
 		return fmt.Errorf("%s", usage)
 	}
 	command := args[0]
-	if (command == "compile" && len(args) != 3) || (command != "compile" && len(args) != 2) {
+	writesOutput := command == "compile" || command == "llvm-ir"
+	if (writesOutput && len(args) != 3) || (!writesOutput && len(args) != 2) {
 		return fmt.Errorf("%s", usage)
 	}
-	if command != "run" && command != "check" && command != "compile" && command != "exec" {
+	if command != "run" && command != "check" && command != "compile" && command != "exec" && command != "run-llvm" && command != "exec-llvm" && command != "llvm-ir" {
 		return fmt.Errorf("%s", usage)
 	}
 	options := language.Options{Print: func(s string) { fmt.Fprintln(stdout, s) }}
-	if command == "exec" {
+	execute := func(program *language.Program) error {
+		if command != "run-llvm" && command != "exec-llvm" {
+			return language.Execute(program, options)
+		}
+		compiled, err := language.CompileLLVM(program, language.LLVMOptions{Optimization: language.LLVMOptimization(os.Getenv("PRESS_LLVM_OPT"))})
+		if err != nil {
+			return err
+		}
+		runErr := compiled.Execute(options)
+		closeErr := compiled.Close()
+		if runErr != nil {
+			return runErr
+		}
+		return closeErr
+	}
+	if command == "exec" || command == "exec-llvm" {
 		file, err := os.Open(args[1])
 		if err != nil {
 			return err
@@ -31,15 +47,21 @@ func run(args []string, stdout io.Writer) error {
 		if err != nil {
 			return err
 		}
-		return language.Execute(program, options)
+		return execute(program)
 	}
 	program, err := language.CompileFile(args[1])
 	if err != nil {
 		return err
 	}
 	switch command {
-	case "run":
-		return language.Execute(program, options)
+	case "run", "run-llvm":
+		return execute(program)
+	case "llvm-ir":
+		ir, err := language.LLVMIR(program)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(args[2], []byte(ir), 0644)
 	case "check":
 		fmt.Fprintln(stdout, "Type check passed.")
 		return nil
