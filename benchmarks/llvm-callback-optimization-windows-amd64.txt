@@ -1,0 +1,63 @@
+goos: windows
+goarch: amd64
+pkg: press/internal/language
+cpu: AMD Ryzen 5 3600X 6-Core Processor
+BenchmarkLLVMWorkloads/list_operations/vm-12      	     276	    637081 ns/op	  202005 B/op	    2016 allocs/op
+BenchmarkLLVMWorkloads/list_operations/vm-12      	     255	    677222 ns/op	  202035 B/op	    2016 allocs/op
+BenchmarkLLVMWorkloads/list_operations/vm-12      	     276	    654768 ns/op	  202005 B/op	    2016 allocs/op
+BenchmarkLLVMWorkloads/list_operations/llvm-12    	      79	   2141829 ns/op	  202373 B/op	    2020 allocs/op
+BenchmarkLLVMWorkloads/list_operations/llvm-12    	      84	   2209187 ns/op	  202323 B/op	    2020 allocs/op
+BenchmarkLLVMWorkloads/list_operations/llvm-12    	      82	   2152356 ns/op	  202304 B/op	    2020 allocs/op
+BenchmarkLLVMWorkloads/map_operations/vm-12       	     225	    823908 ns/op	  539087 B/op	    3027 allocs/op
+BenchmarkLLVMWorkloads/map_operations/vm-12       	     229	    814185 ns/op	  539090 B/op	    3027 allocs/op
+BenchmarkLLVMWorkloads/map_operations/vm-12       	     231	    786044 ns/op	  539097 B/op	    3027 allocs/op
+BenchmarkLLVMWorkloads/map_operations/llvm-12     	      78	   2410758 ns/op	  539430 B/op	    3032 allocs/op
+BenchmarkLLVMWorkloads/map_operations/llvm-12     	      76	   2365249 ns/op	  539416 B/op	    3032 allocs/op
+BenchmarkLLVMWorkloads/map_operations/llvm-12     	      80	   2355076 ns/op	  539422 B/op	    3032 allocs/op
+BenchmarkLLVMWorkloads/empty_program/vm-12        	  991407	       208.5 ns/op	      56 B/op	       3 allocs/op
+BenchmarkLLVMWorkloads/empty_program/vm-12        	  901758	       206.4 ns/op	      56 B/op	       3 allocs/op
+BenchmarkLLVMWorkloads/empty_program/vm-12        	  982478	       240.2 ns/op	      56 B/op	       3 allocs/op
+BenchmarkLLVMWorkloads/empty_program/llvm-12      	  135543	      1177 ns/op	     352 B/op	       8 allocs/op
+BenchmarkLLVMWorkloads/empty_program/llvm-12      	  169609	      1121 ns/op	     352 B/op	       8 allocs/op
+BenchmarkLLVMWorkloads/empty_program/llvm-12      	  164427	      1136 ns/op	     352 B/op	       8 allocs/op
+BenchmarkLLVMWorkloads/arithmetic/vm-12           	    1758	     93262 ns/op	      65 B/op	       4 allocs/op
+BenchmarkLLVMWorkloads/arithmetic/vm-12           	    1872	     93414 ns/op	      65 B/op	       4 allocs/op
+BenchmarkLLVMWorkloads/arithmetic/vm-12           	    1947	     94473 ns/op	      65 B/op	       4 allocs/op
+BenchmarkLLVMWorkloads/arithmetic/llvm-12         	   21208	      8838 ns/op	     360 B/op	       9 allocs/op
+BenchmarkLLVMWorkloads/arithmetic/llvm-12         	   21597	      8937 ns/op	     360 B/op	       9 allocs/op
+BenchmarkLLVMWorkloads/arithmetic/llvm-12         	   17636	      8905 ns/op	     360 B/op	       9 allocs/op
+BenchmarkLLVMWorkloads/function_calls/vm-12       	     630	    275542 ns/op	      69 B/op	       4 allocs/op
+BenchmarkLLVMWorkloads/function_calls/vm-12       	     602	    288769 ns/op	      66 B/op	       4 allocs/op
+BenchmarkLLVMWorkloads/function_calls/vm-12       	     555	    311488 ns/op	      69 B/op	       4 allocs/op
+BenchmarkLLVMWorkloads/function_calls/llvm-12     	   10000	     15252 ns/op	     360 B/op	       9 allocs/op
+BenchmarkLLVMWorkloads/function_calls/llvm-12     	   12160	     15452 ns/op	     360 B/op	       9 allocs/op
+BenchmarkLLVMWorkloads/function_calls/llvm-12     	   12764	     14834 ns/op	     360 B/op	       9 allocs/op
+BenchmarkLLVMWorkloads/nested_value_copies/vm-12  	     182	    995530 ns/op	  512596 B/op	    8008 allocs/op
+BenchmarkLLVMWorkloads/nested_value_copies/vm-12  	     202	   1119905 ns/op	  512596 B/op	    8008 allocs/op
+BenchmarkLLVMWorkloads/nested_value_copies/vm-12  	     198	    826726 ns/op	  512609 B/op	    8008 allocs/op
+BenchmarkLLVMWorkloads/nested_value_copies/llvm-12         	      68	   2701829 ns/op	  953570 B/op	   16017 allocs/op
+BenchmarkLLVMWorkloads/nested_value_copies/llvm-12         	      74	   2711830 ns/op	  953576 B/op	   16017 allocs/op
+BenchmarkLLVMWorkloads/nested_value_copies/llvm-12         	      70	   2656106 ns/op	  953619 B/op	   16017 allocs/op
+BenchmarkLLVMWorkloads/shared_references/vm-12             	     534	    333310 ns/op	     178 B/op	       6 allocs/op
+BenchmarkLLVMWorkloads/shared_references/vm-12             	     540	    340029 ns/op	     178 B/op	       6 allocs/op
+BenchmarkLLVMWorkloads/shared_references/vm-12             	     538	    333784 ns/op	     175 B/op	       6 allocs/op
+BenchmarkLLVMWorkloads/shared_references/llvm-12           	      80	   1941890 ns/op	  297106 B/op	    6014 allocs/op
+BenchmarkLLVMWorkloads/shared_references/llvm-12           	      84	   1918863 ns/op	  297092 B/op	    6014 allocs/op
+BenchmarkLLVMWorkloads/shared_references/llvm-12           	      90	   1898011 ns/op	  297058 B/op	    6014 allocs/op
+BenchmarkLLVMWorkloads/interface_dispatch/vm-12            	     513	    355233 ns/op	     175 B/op	       6 allocs/op
+BenchmarkLLVMWorkloads/interface_dispatch/vm-12            	     500	    359805 ns/op	     178 B/op	       6 allocs/op
+BenchmarkLLVMWorkloads/interface_dispatch/vm-12            	     500	    370779 ns/op	     178 B/op	       6 allocs/op
+BenchmarkLLVMWorkloads/interface_dispatch/llvm-12          	      58	   2997745 ns/op	  555469 B/op	   11078 allocs/op
+BenchmarkLLVMWorkloads/interface_dispatch/llvm-12          	      58	   3044747 ns/op	  555510 B/op	   11078 allocs/op
+BenchmarkLLVMWorkloads/interface_dispatch/llvm-12          	      54	   3025239 ns/op	  555312 B/op	   11077 allocs/op
+BenchmarkLLVMWorkloads/allocation/vm-12                    	     481	    370564 ns/op	  112131 B/op	    2004 allocs/op
+BenchmarkLLVMWorkloads/allocation/vm-12                    	     524	    373556 ns/op	  112133 B/op	    2004 allocs/op
+BenchmarkLLVMWorkloads/allocation/vm-12                    	     517	    370011 ns/op	  112126 B/op	    2004 allocs/op
+BenchmarkLLVMWorkloads/allocation/llvm-12                  	     165	   1069470 ns/op	  112425 B/op	    2009 allocs/op
+BenchmarkLLVMWorkloads/allocation/llvm-12                  	     168	   1012738 ns/op	  112424 B/op	    2009 allocs/op
+BenchmarkLLVMWorkloads/allocation/llvm-12                  	     174	   1009511 ns/op	  112430 B/op	    2009 allocs/op
+BenchmarkLLVMCompile-12                                    	      10	  15358950 ns/op	   43211 B/op	     368 allocs/op
+BenchmarkLLVMCompile-12                                    	      10	  15072670 ns/op	   43137 B/op	     368 allocs/op
+BenchmarkLLVMCompile-12                                    	      10	  15444780 ns/op	   43139 B/op	     368 allocs/op
+PASS
+ok  	press/internal/language	13.409s
