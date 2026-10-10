@@ -60,6 +60,25 @@ Application bytecode remains portable; the CLI executable is platform-specific.
 It is not JVM or
 LLVM bytecode, and compatibility across future format versions is not promised.
 
+## Experimental LLVM execution
+
+An optional Windows/amd64 LLVM ORC JIT now executes Press artifacts while retaining
+Go's garbage collector. The normal `run` and `exec` commands continue to use the VM.
+
+```powershell
+.\bin\press.exe run-llvm examples/counter.press
+.\bin\press.exe exec-llvm counter.pbc
+.\bin\press.exe llvm-ir examples/counter.press counter.ll
+```
+
+Native execution requires a compatible `LLVM-C.dll`; IR generation does not.
+Scalar functions and direct scalar calls keep primitive values in native code.
+Selected numeric loops inside functions that hold objects also run natively,
+while Go retains their object references and garbage collection.
+Other functions batch instructions through Go helpers and remain slower than the VM. See the
+[setup, memory model and API](docs/llvm.md) and
+[current measurements](benchmarks/llvm-callback-optimization-2026-10-09.md). The browser retains its VM.
+
 ## Implemented
 
 - Lexer, parser, compile-time type checking, bytecode emitter and stack VM.
@@ -328,13 +347,15 @@ executable metadata after its first Execute. Preparation is outside warmed VM ti
    on the interned type graph and typed compiler instructions.
 2. Preserve source locations through bytecode and improve runtime diagnostics.
 3. Measure startup, preparation and execution independently as internals evolve.
-   Evaluate LLVM JIT/AOT only if measurements justify the additional runtime/GC work.
+   Evaluate the optional LLVM JIT using separate compilation and warmed execution
+   measurements; reduce callback overhead before considering it as a default.
 
 Collection iteration, cleanup syntax, namespaces and concurrency remain possible
 extensions. They are not prerequisites for the next backend milestone. See the
 [backend architecture notes](docs/backend.md) for current boundaries and invariants.
 
-There is no server framework, JIT or performance claim yet.
+There is no server framework. The LLVM backend is an optional experiment, with
+limited scalar improvements and substantial regressions on other workloads.
 Strings support concatenation and standard quoted escapes, not interpolation.
 Conditions require parentheses. Non-void functions currently must end with an
 explicit return; full control-flow return analysis is deferred. Integer overflow
